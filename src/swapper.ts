@@ -507,7 +507,7 @@ export class Swapper {
       await fetch(
         `${this.paraDataBaseURL}/?version=${this.paraDataBaseVersion}&srcToken=${getRateData.srcToken}&srcDecimals=${getRateData?.srcDecimals || 18}&destToken=${getRateData.destToken
         }&destDecimals=${getRateData?.destDecimals || 18}&amount=${amount}&side=${getRateData.side}&excludeDirectContractMethods=${getRateData.excludeDirectContractMethods || false
-        }&otherExchangePrices=${getRateData.otherExchangePrices || true}&partner=${getRateData.partner}&network=${this.configs.chainId
+        }&otherExchangePrices=${getRateData.otherExchangePrices || true}&partner=${getRateData.partner}&network=${this.profile.chainId
         }&userAddress=${address}`,
         {
           method: 'GET',
@@ -522,7 +522,7 @@ export class Swapper {
     myHeaders.append('Content-Type', 'application/json')
     const swapData = await (
       await fetch(
-        `${this.paraBuildTxBaseURL}/${this.configs.chainId}?ignoreGasEstimate=${getRateData.ignoreGasEstimate || true}&ignoreAllowance=${getRateData.ignoreAllowance || true
+        `${this.paraBuildTxBaseURL}/${this.profile.chainId}?ignoreGasEstimate=${getRateData.ignoreGasEstimate || true}&ignoreAllowance=${getRateData.ignoreAllowance || true
         }&gasPrice=${rateData.priceRoute.gasCost}`,
         {
           method: 'POST',
