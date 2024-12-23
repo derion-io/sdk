@@ -70,39 +70,48 @@ describe('SDK', () => {
     account.processLogs(txLogs)
     const swapper = sdk.createSwapper(rpcUrl)
     // NATIVE - A
-    const { amountOuts: amountOutsA, gasUsed: gasUsedA  } = await swapper.simulate({
-      tokenIn: NATIVE_ADDRESS,
-      tokenOut: packPosId(poolToSwap, POOL_IDS.A),
-      amount: numberToWei(0.0001, 18),
-      deps: {
-        signer,
-        pools
-      }
-    })
-    expect(Number(amountOutsA)).toBeGreaterThan(0)
-    expect(Number(gasUsedA)).toBeGreaterThan(0)
-    const { amountOuts: amountOutsB, gasUsed: gasUsedB} = await swapper.simulate({
-      tokenIn: NATIVE_ADDRESS,
-      tokenOut: packPosId(poolToSwap, POOL_IDS.B),
-      amount: numberToWei(0.0001, 18),
-      deps: {
-        signer,
-        pools
-      }
-    })
-    expect(Number(amountOutsB)).toBeGreaterThan(0)
-    expect(Number(gasUsedB)).toBeGreaterThan(0)
-    const { amountOuts: amountOutsC, gasUsed: gasUsedC} = await swapper.simulate({
-      tokenIn: NATIVE_ADDRESS,
-      tokenOut: packPosId(poolToSwap, POOL_IDS.C),
-      amount: numberToWei(0.0001, 18),
-      deps: {
-        signer,
-        pools
-      }
-    })
-    expect(Number(amountOutsC)).toBeGreaterThan(0)
-    expect(Number(gasUsedC)).toBeGreaterThan(0)
+    {
+      const { amountOuts, gasUsed  } = await swapper.simulate({
+        tokenIn: NATIVE_ADDRESS,
+        tokenOut: packPosId(poolToSwap, POOL_IDS.A),
+        amount: numberToWei(0.0001, 18),
+        deps: {
+          signer,
+          pools
+        }
+      })
+      const amountOut = amountOuts[amountOuts.length-1]
+      expect(amountOut.toString()).toEqual('51625135')
+      expect(gasUsed).toEqual(2392715)
+    }
+    {
+      const { amountOuts, gasUsed } = await swapper.simulate({
+        tokenIn: NATIVE_ADDRESS,
+        tokenOut: packPosId(poolToSwap, POOL_IDS.B),
+        amount: numberToWei(0.0001, 18),
+        deps: {
+          signer,
+          pools
+        }
+      })
+      const amountOut = amountOuts[amountOuts.length-1]
+      expect(amountOut.toString()).toEqual('23012510')
+      expect(gasUsed).toEqual(2393040)
+    }
+    {
+      const { amountOuts, gasUsed } = await swapper.simulate({
+        tokenIn: NATIVE_ADDRESS,
+        tokenOut: packPosId(poolToSwap, POOL_IDS.C),
+        amount: numberToWei(0.0001, 18),
+        deps: {
+          signer,
+          pools
+        }
+      })
+      const amountOut = amountOuts[amountOuts.length-1]
+      expect(amountOut.toString()).toEqual('218198033')
+      expect(gasUsed).toEqual(2410961)
+    }
   })
 
   test('R-open', async () => {

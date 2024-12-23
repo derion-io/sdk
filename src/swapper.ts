@@ -596,7 +596,7 @@ export class Swapper {
     callStatic?: boolean
     gasLimit?: BigNumber
   }): Promise<any> => {
-    const _gasLimit = gasLimit ?? bn(1000000)
+    gasLimit = gasLimit ?? bn(4000000)
     const tx: any = await this.multiSwap({
       steps: [
         {
@@ -607,13 +607,13 @@ export class Swapper {
           useSweep: false
         },
       ],
-      gasLimit: gasLimit ?? bn(1000000),
+      gasLimit,
       callStatic,
       deps,
     })
     if(callStatic) {
       const gasLeft = tx.gasLeft
-      const gasUsed = (_gasLimit as BigNumber).sub(gasLeft)
+      const gasUsed = bn(6000000).sub(gasLeft).toNumber()
       return {
         ...tx,
         gasUsed,
