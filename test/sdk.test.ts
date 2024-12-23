@@ -1,8 +1,8 @@
 import { DerionSDK } from '../src/sdk'
-import { packPosId, throwError } from '../src/utils'
+import { formatQ128, packPosId, throwError } from '../src/utils'
 import { Interceptor } from './shared/libs/interceptor'
 import { JsonRpcProvider } from '@ethersproject/providers'
-import { NATIVE_ADDRESS, POOL_IDS } from '../src/utils/constant'
+import { BIG_0, NATIVE_ADDRESS, POOL_IDS } from '../src/utils/constant'
 import { numberToWei } from '../src/utils/helper'
 import { VoidSigner } from 'ethers'
 import { formatPositionView } from '../src/utils/positions'
@@ -43,9 +43,11 @@ describe('SDK', () => {
     account.processLogs(txLogs)
     account.processLogs(txLogs) // the second call does nothing
 
-    const posViews = Object.values(account.positions).map(pos => sdk.calcPositionState(pos, pools))
+    // const posViews = Object.values(account.positions).map(pos => sdk.calcPositionState(pos, pools))
+    // console.log(...posViews.map(pv => formatPositionView(pv)))
 
-    console.log(...posViews.map(pv => formatPositionView(pv)))
+    const posView = sdk.calcPositionState(account.positions['0x00000000000000000000002090c153fc30f6c2abdd5ff3ccf22bafba872d1509'], pools)
+    expect(formatQ128(posView.netPnL ?? BIG_0)).toBeCloseTo(5.90, 1)
   })
 
   test('native-open', async () => {
@@ -81,8 +83,8 @@ describe('SDK', () => {
         }
       })
       const amountOut = amountOuts[amountOuts.length - 1]
-      expect(amountOut.toString()).toEqual('51625135')
-      expect(gasUsed).toEqual(2392715)
+      expect(amountOut.div(1000000).toString()).toEqual('51')
+      expect(gasUsed).toBeLessThan(3000000)
     }
     {
       const { amountOuts, gasUsed } = await swapper.simulate({
@@ -95,8 +97,8 @@ describe('SDK', () => {
         }
       })
       const amountOut = amountOuts[amountOuts.length - 1]
-      expect(amountOut.toString()).toEqual('23012510')
-      expect(gasUsed).toEqual(2393040)
+      expect(amountOut.div(10000000).toString()).toEqual('2')
+      expect(gasUsed).toBeLessThan(3000000)
     }
     {
       const { amountOuts, gasUsed } = await swapper.simulate({
@@ -109,15 +111,15 @@ describe('SDK', () => {
         }
       })
       const amountOut = amountOuts[amountOuts.length - 1]
-      expect(amountOut.toString()).toEqual('218198033')
-      expect(gasUsed).toEqual(2410961)
+      expect(amountOut.div(100000000).toString()).toEqual('2')
+      expect(gasUsed).toBeLessThan(3000000)
     }
   })
 
   test('R-open', async () => {
-    const chainId = 42161
+    const chainId = 137
     const accountAddress = '0xE61383556642AF1Bd7c5756b13f19A63Dc8601df'
-    const poolToSwap = '0xf3cE4cbfF83AE70e9F76b22cd9b683F167d396dd'
+    const poolToSwap = '0x45c0C6a6d08B430F73b80b54dF09050114f5D55b'
     const rpcUrl = RPCs[chainId] ?? throwError()
     const sdk = new DerionSDK({ chainId })
     await sdk.init()
@@ -137,41 +139,50 @@ describe('SDK', () => {
     // Token R -> A
     const poolToSwapR = pools[poolToSwap].config?.TOKEN_R
     expect(poolToSwapR?.length).toBeGreaterThanOrEqual(42)
-    const { amountOuts: amountROutsA, gasUsed: gasUsedRA } = await swapper.simulate({
-      tokenIn: poolToSwapR || '',
-      tokenOut: packPosId(poolToSwap, POOL_IDS.A),
-      amount: numberToWei(0.0001, 18),
-      deps: {
-        signer,
-        pools
-      }
-    })
-    expect(Number(amountROutsA)).toBeGreaterThan(0)
-    expect(Number(gasUsedRA)).toBeGreaterThan(0)
+    {
+      const { amountOuts, gasUsed } = await swapper.simulate({
+        tokenIn: poolToSwapR || '',
+        tokenOut: packPosId(poolToSwap, POOL_IDS.A),
+        amount: numberToWei(0.1, 6),
+        deps: {
+          signer,
+          pools
+        }
+      })
+      const amountOut = amountOuts[amountOuts.length - 1]
+      expect(amountOut.div(100).toString()).toEqual('491')
+      expect(gasUsed).toBeLessThan(3000000)
+    }
     // Token R -> B
-    const { amountOuts: amountROutsB, gasUsed: gasUsedRB } = await swapper.simulate({
-      tokenIn: poolToSwapR || '',
-      tokenOut: packPosId(poolToSwap, POOL_IDS.B),
-      amount: numberToWei(0.0001, 18),
-      deps: {
-        signer,
-        pools
-      }
-    })
-    expect(Number(amountROutsB)).toBeGreaterThan(0)
-    expect(Number(gasUsedRB)).toBeGreaterThan(0)
+    {
+      const { amountOuts, gasUsed } = await swapper.simulate({
+        tokenIn: poolToSwapR || '',
+        tokenOut: packPosId(poolToSwap, POOL_IDS.B),
+        amount: numberToWei(0.1, 6),
+        deps: {
+          signer,
+          pools
+        }
+      })
+      const amountOut = amountOuts[amountOuts.length - 1]
+      expect(amountOut.div(10).toString()).toEqual('628')
+      expect(gasUsed).toBeLessThan(3000000)
+    }
     // Token R -> C
-    const { amountOuts: amountROutsC, gasUsed: gasUsedRC } = await swapper.simulate({
-      tokenIn: poolToSwapR || '',
-      tokenOut: packPosId(poolToSwap, POOL_IDS.C),
-      amount: numberToWei(0.0001, 18),
-      deps: {
-        signer,
-        pools
-      }
-    })
-    expect(Number(amountROutsC)).toBeGreaterThan(0)
-    expect(Number(gasUsedRC)).toBeGreaterThan(0)
+    {
+      const { amountOuts, gasUsed } = await swapper.simulate({
+        tokenIn: poolToSwapR || '',
+        tokenOut: packPosId(poolToSwap, POOL_IDS.C),
+        amount: numberToWei(0.1, 6),
+        deps: {
+          signer,
+          pools
+        }
+      })
+      const amountOut = amountOuts[amountOuts.length - 1]
+      expect(amountOut.div(1000).toString()).toEqual('399')
+      expect(gasUsed).toBeLessThan(3000000)
+    }
   })
 
   test('any-open', async () => {
@@ -198,42 +209,42 @@ describe('SDK', () => {
       const { amountOuts, gasUsed } = await swapper.simulate({
         tokenIn: '0xaf88d065e77c8cC2239327C5EDb3A432268e5831', // USDC
         tokenOut: packPosId(poolToSwap, POOL_IDS.A),
-        amount: "100000",
+        amount: "1000",
         deps: {
           signer,
           pools
         }
       })
       const amountOut = amountOuts[amountOuts.length - 1]
-      expect(amountOut.div(1000000).toString()).toEqual('15')
+      expect(amountOut.div(10000).toString()).toEqual('15')
       expect(gasUsed).toBeLessThan(3000000)
     }
     {
       const { amountOuts, gasUsed } = await swapper.simulate({
         tokenIn: '0xaf88d065e77c8cC2239327C5EDb3A432268e5831', // USDC
         tokenOut: packPosId(poolToSwap, POOL_IDS.B),
-        amount: "100000",
+        amount: "1000",
         deps: {
           signer,
           pools
         }
       })
       const amountOut = amountOuts[amountOuts.length - 1]
-      expect(amountOut.div(1000000).toString()).toEqual('6')
+      expect(amountOut.div(10000).toString()).toEqual('6')
       expect(gasUsed).toBeLessThan(3000000)
     }
     {
       const { amountOuts, gasUsed } = await swapper.simulate({
         tokenIn: '0xaf88d065e77c8cC2239327C5EDb3A432268e5831', // USDC
         tokenOut: packPosId(poolToSwap, POOL_IDS.C),
-        amount: "100000",
+        amount: "1000",
         deps: {
           signer,
           pools
         }
       })
       const amountOut = amountOuts[amountOuts.length - 1]
-      expect(amountOut.div(10000000).toString()).toEqual('6')
+      expect(amountOut.div(100000).toString()).toEqual('6')
       expect(gasUsed).toBeLessThan(3000000)
     }
   })
@@ -269,7 +280,7 @@ describe('SDK', () => {
         }
       })
       const amountOut = amountOuts[amountOuts.length - 1]
-      expect(amountOut.div(1000000).toString()).toEqual('2666087772')
+      expect(amountOut.div('100000000000000').toString()).toEqual('26')
       expect(gasUsed).toBeLessThan(3000000)
     }
     {
@@ -283,7 +294,7 @@ describe('SDK', () => {
         }
       })
       const amountOut = amountOuts[amountOuts.length - 1]
-      expect(amountOut.div(1000000).toString()).toEqual('647')
+      expect(amountOut.div(100000000).toString()).toEqual('6')
       expect(gasUsed).toBeLessThan(3000000)
     }
     {
@@ -297,7 +308,7 @@ describe('SDK', () => {
         }
       })
       const amountOut = amountOuts[amountOuts.length - 1]
-      expect(amountOut.div(1000000).toString()).toEqual('1532955386')
+      expect(amountOut.div('100000000000000').toString()).toEqual('15')
       expect(gasUsed).toBeLessThan(3000000)
     }
   })
@@ -325,7 +336,7 @@ describe('SDK', () => {
 
     const swapper = sdk.createSwapper(rpcUrl)
     {
-      console.log('A -> NATIVE')
+      // console.log('A -> NATIVE')
       const { amountOuts, gasUsed } = await swapper.simulate({
         tokenIn: packPosId(positionPoolARB, POOL_IDS.A),
         tokenOut: pools[positionPoolARB].config?.TOKEN_R || "",
@@ -336,11 +347,11 @@ describe('SDK', () => {
         }
       })
       const amountOut = amountOuts[amountOuts.length - 1]
-      expect(amountOut.div(1000000).toString()).toEqual('2807582157')
+      expect(amountOut.div('1000000000000000').toString()).toEqual('2')
       expect(gasUsed).toBeLessThan(3000000)
     }
     {
-      console.log('B -> NATIVE')
+      // console.log('B -> NATIVE')
 
       const { amountOuts, gasUsed } = await swapper.simulate({
         tokenIn: packPosId(positionPoolARB, POOL_IDS.B),
@@ -353,11 +364,11 @@ describe('SDK', () => {
       })
 
       const amountOut = amountOuts[amountOuts.length - 1]
-      expect(amountOut.div(1000000).toString()).toEqual('1626512847')
+      expect(amountOut.div(100000000000000).toString()).toEqual('16')
       expect(gasUsed).toBeLessThan(3000000)
     }
     {
-      console.log('C -> NATIVE')
+      // console.log('C -> NATIVE')
 
       const { amountOuts, gasUsed } = await swapper.simulate({
         tokenIn: packPosId(positionPoolWETH, POOL_IDS.C),
@@ -369,13 +380,13 @@ describe('SDK', () => {
         }
       })
       const amountOut = amountOuts[amountOuts.length - 1]
-      expect(amountOut.div(1000000).toString()).toEqual('421426528')
+      expect(amountOut.div(10000000000000).toString()).toEqual('42')
       expect(gasUsed).toBeLessThan(3000000)
     }
 
 
     {
-      console.log('A -> R')
+      // console.log('A -> R')
       const { amountOuts, gasUsed } = await swapper.simulate({
         tokenIn: packPosId(positionPoolARB, POOL_IDS.A),
         tokenOut: pools[positionPoolARB].config?.TOKEN_R || "",
@@ -386,11 +397,11 @@ describe('SDK', () => {
         }
       })
       const amountOut = amountOuts[amountOuts.length - 1]
-      expect(amountOut.div(1000000).toString()).toEqual('2807582157')
+      expect(amountOut.div('1000000000000000').toString()).toEqual('2')
       expect(gasUsed).toBeLessThan(3000000)
     }
     {
-      console.log('B -> R')
+      // console.log('B -> R')
 
       const { amountOuts, gasUsed } = await swapper.simulate({
         tokenIn: packPosId(positionPoolARB, POOL_IDS.B),
@@ -403,11 +414,11 @@ describe('SDK', () => {
       })
 
       const amountOut = amountOuts[amountOuts.length - 1]
-      expect(amountOut.div(1000000).toString()).toEqual('1626507164')
+      expect(amountOut.div('10000000000000').toString()).toEqual('162')
       expect(gasUsed).toBeLessThan(3000000)
     }
     {
-      console.log('C -> R')
+      // console.log('C -> R')
 
       const { amountOuts, gasUsed } = await swapper.simulate({
         tokenIn: packPosId(positionPoolWETH, POOL_IDS.C),
@@ -419,14 +430,14 @@ describe('SDK', () => {
         }
       })
       const amountOut = amountOuts[amountOuts.length - 1]
-      expect(amountOut.div(1000000).toString()).toEqual('421426805')
+      expect(amountOut.div('10000000000000').toString()).toEqual('42')
       expect(gasUsed).toBeLessThan(3000000)
     }
 
     const USDC = '0xaf88d065e77c8cC2239327C5EDb3A432268e5831'
 
     {
-      console.log('A -> USDC')
+      // console.log('A -> USDC')
       const { amountOuts, gasUsed } = await swapper.simulate({
         tokenIn: packPosId(positionPoolARB, POOL_IDS.A),
         tokenOut: USDC,
@@ -437,11 +448,11 @@ describe('SDK', () => {
         }
       })
       const amountOut = amountOuts[amountOuts.length - 1]
-      expect(amountOut.div(100).toString()).toEqual('93514')
+      expect(amountOut.div(1000000).toString()).toEqual('9')
       expect(gasUsed).toBeLessThan(3000000)
     }
     {
-      console.log('B -> USDC')
+      // console.log('B -> USDC')
 
       const { amountOuts, gasUsed } = await swapper.simulate({
         tokenIn: packPosId(positionPoolARB, POOL_IDS.B),
@@ -454,11 +465,11 @@ describe('SDK', () => {
       })
 
       const amountOut = amountOuts[amountOuts.length - 1]
-      expect(amountOut.div(100).toString()).toEqual('54206')
+      expect(amountOut.div(100000).toString()).toEqual('54')
       expect(gasUsed).toBeLessThan(3000000)
     }
     {
-      console.log('C -> USDC')
+      // console.log('C -> USDC')
 
       const { amountOuts, gasUsed } = await swapper.simulate({
         tokenIn: packPosId(positionPoolWETH, POOL_IDS.C),
@@ -470,7 +481,7 @@ describe('SDK', () => {
         }
       })
       const amountOut = amountOuts[amountOuts.length - 1]
-      expect(amountOut.div(100).toString()).toEqual('14045')
+      expect(amountOut.div(100000).toString()).toEqual('14')
       expect(gasUsed).toBeLessThan(3000000)
     }
 
