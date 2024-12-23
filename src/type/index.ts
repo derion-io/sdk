@@ -75,7 +75,7 @@ export type LogType = {
   args: any
 }
 
-export type SdkPool = {
+export type Pool = {
   address: string
   config?: {
     FETCHER: string
@@ -107,11 +107,11 @@ export type SdkPool = {
   }
 }
 
-export type SdkPools = {
-  [address: string]: SdkPool
+export type Pools = {
+  [address: string]: Pool
 }
 
-export type FungiblePosition = {
+export type Position = {
   id: string,
   balance: BigNumber,
   priceR: BigNumber,

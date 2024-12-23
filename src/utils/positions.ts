@@ -2,7 +2,7 @@ import { getAddress, hexDataSlice } from "ethers/lib/utils"
 import { BigNumber } from "ethers"
 import { formatPercentage, formatQ128, IEW, kx, NUM, powX128, rateFromHL, SHL, thousandsInt, WEI, xr } from "./helper"
 import { BIG_E18, POOL_IDS } from "./constant"
-import { FungiblePosition, SdkPool, SdkPools } from "../type"
+import { Position, Pool, Pools } from "../type"
 
 const { A, B, C } = POOL_IDS
 
@@ -32,7 +32,7 @@ export type PositionView = {
   }
 }
 
-export function calcPoolInfo(pool: SdkPool): any {
+export function calcPoolInfo(pool: Pool): any {
   if (!pool?.config || !pool?.view || !pool?.state) {
     throw new Error('missing pool data')
   }
@@ -96,7 +96,7 @@ export function calcPoolInfo(pool: SdkPool): any {
 }
 
 export function calcPoolSide(
-  pool: SdkPool,
+  pool: Pool,
   side: number,
 ): any {
   if (!pool?.config || !pool?.view || !pool?.state) {
@@ -128,8 +128,8 @@ export function calcPoolSide(
 }
 
 export function calcPositionState(
-  position: FungiblePosition,
-  pools: SdkPools,
+  position: Position,
+  pools: Pools,
   currentPriceR?: BigNumber,
   balance = position.balance,
 ): PositionView {

@@ -7,7 +7,7 @@ import { numberToWei } from '../src/utils/helper'
 import { VoidSigner } from 'ethers'
 import { formatPositionView } from '../src/utils/positions'
 import path from 'path'
-import { LogType, SdkPools } from '../src/type'
+import { LogType, Pools } from '../src/type'
 
 const interceptor = new Interceptor()
 
@@ -35,7 +35,7 @@ describe('SDK', () => {
 
     const stateLoader = sdk.getStateLoader(rpcUrl)
 
-    const pools: SdkPools = {}
+    const pools: Pools = {}
     sdk.importPools(pools, poolAddresses)
     await stateLoader.update({ pools })
 
@@ -61,7 +61,7 @@ describe('SDK', () => {
     const { poolAddresses } = sdk.extractLogs(txLogs)
 
     const stateLoader = sdk.getStateLoader(rpcUrl)
-    const pools: SdkPools = {}
+    const pools: Pools = {}
     sdk.importPools(pools, poolAddresses)
     await stateLoader.update({ pools })
 
@@ -119,7 +119,7 @@ describe('SDK', () => {
     const { poolAddresses } = sdk.extractLogs(txLogs)
 
     const stateLoader = sdk.getStateLoader(rpcUrl)
-    const pools: SdkPools = {}
+    const pools: Pools = {}
     sdk.importPools(pools, poolAddresses)
     await stateLoader.update({ pools })
     const account = sdk.createAccount(accountAddress)
@@ -179,7 +179,7 @@ describe('SDK', () => {
     const { poolAddresses } = sdk.extractLogs(txLogs)
 
     const stateLoader = sdk.getStateLoader(rpcUrl)
-    const pools: SdkPools = {}
+    const pools: Pools = {}
     sdk.importPools(pools, poolAddresses)
     await stateLoader.update({ pools })
     const account = sdk.createAccount(accountAddress)
@@ -232,7 +232,7 @@ describe('SDK', () => {
     const { poolAddresses } = sdk.extractLogs(txLogs)
 
     const stateLoader = sdk.getStateLoader(rpcUrl)
-    const pools: SdkPools = {}
+    const pools: Pools = {}
     sdk.importPools(pools, poolAddresses)
     await stateLoader.update({ pools })
     const account = sdk.createAccount(accountAddress)
@@ -287,7 +287,7 @@ describe('SDK', () => {
     const { poolAddresses } = sdk.extractLogs(txLogs)
 
     const stateLoader = sdk.getStateLoader(rpcUrl)
-    const pools: SdkPools = {}
+    const pools: Pools = {}
     sdk.importPools(pools, poolAddresses)
     await stateLoader.update({ pools })
     const account = sdk.createAccount(accountAddress)

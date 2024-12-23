@@ -6,7 +6,7 @@ import { NATIVE_ADDRESS, POOL_IDS, Q128 } from './utils/constant'
 const { AddressZero } = ethers.constants
 
 import { addressFromToken, sideFromToken, isPosId, packPosId, throwError, unpackPosId, bn } from './utils'
-import { ProfileConfigs, SdkPools } from './type'
+import { ProfileConfigs, Pools } from './type'
 const PAYMENT = 0
 const TRANSFER = 1
 const CALL_VALUE = 2
@@ -49,7 +49,7 @@ export type MultiSwapParameterType = {
   callStatic?: boolean
   deps: {
     signer: Signer
-    pools: SdkPools
+    pools: Pools
     decimals?: { [token: string]: number }
   }
 }
@@ -63,7 +63,7 @@ export type SwapCallDataParameterType = {
   sideOut: number
   deps: {
     signer: Signer
-    pools: SdkPools
+    pools: Pools
     decimals?: {
       [token: string]: number
     }
@@ -356,7 +356,7 @@ export class Swapper {
     steps: Array<SwapStepType>
     deps: {
       signer: Signer
-      pools: SdkPools
+      pools: Pools
       decimals?: { [token: string]: number }
     }
   }): Promise<{
@@ -589,7 +589,7 @@ export class Swapper {
     tokenOut: string
     amount: string
     deps: {
-      pools: SdkPools
+      pools: Pools
       signer: Signer
       decimals?: { [token: string]: number }
     }
@@ -626,7 +626,7 @@ export class Swapper {
     tokenOut: string
     amount: string
     deps: {
-      pools: SdkPools
+      pools: Pools
       signer: Signer
       decimals?: { [token: string]: number }
     }

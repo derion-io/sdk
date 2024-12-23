@@ -1,6 +1,6 @@
 import { BigNumber } from 'ethers'
 import { defaultAbiCoder, getAddress, hexDataSlice } from 'ethers/lib/utils'
-import { FungiblePosition, LogType, Transition } from '../type'
+import { Position, LogType, Transition } from '../type'
 import { BIG_0 } from './constant'
 
 export const TOPICS: { [topic0: string]: string } = {
@@ -38,7 +38,7 @@ export function extractPoolAddresses(txLogs: LogType[][], tokenDerion: string): 
 }
 
 export function processLogs(
-  positions: { [id: string]: FungiblePosition },
+  positions: { [id: string]: Position },
   transitions: Transition[],
   balances: { [token: string]: BigNumber },
   txLogs: LogType[][],

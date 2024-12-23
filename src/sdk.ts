@@ -7,7 +7,7 @@ import { ConnectionInfo } from 'ethers/lib/utils'
 import { extractPoolAddresses } from './utils/logs'
 import {Swapper} from './swapper'
 import { calcPositionState, PositionView } from './utils/positions'
-import { FungiblePosition, LogType, ProfileConfigs, SdkPools } from './type'
+import { Position, LogType, ProfileConfigs, Pools } from './type'
 
 export class DerionSDK {
   constructor(configs: ProfileConfigs) {
@@ -35,7 +35,7 @@ export class DerionSDK {
     return new Account(this.profile, address, signer)
   }
 
-  importPools(pools: SdkPools, poolAddresses: string[]) {
+  importPools(pools: Pools, poolAddresses: string[]) {
     poolAddresses.forEach(address => {
       if (!pools[address]) {
         pools[address] = { address }
@@ -48,8 +48,8 @@ export class DerionSDK {
   }
 
   calcPositionState = (
-    position: FungiblePosition,
-    pools: SdkPools,
+    position: Position,
+    pools: Pools,
     currentPriceR = position.priceR,
     balance = position.balance,
   ): PositionView => {

@@ -3,7 +3,7 @@ import { CallReturnContext, ContractCallContext, Multicall } from 'ethereum-mult
 import { ConnectionInfo } from 'ethers/lib/utils';
 import { Profile } from './profile';
 import { BigNumber } from 'ethers';
-import { SdkPools } from './type';
+import { Pools } from './type';
 
 export class StateLoader {
   profile: Profile
@@ -19,7 +19,7 @@ export class StateLoader {
   async update({
     pools,
   }: {
-    pools?: SdkPools,
+    pools?: Pools,
   }) {
     const { abi, deployedBytecode: code } = this.profile.getAbi('View')
     this.provider.setStateOverride({

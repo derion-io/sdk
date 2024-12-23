@@ -1,7 +1,7 @@
 import { BigNumber, Signer } from 'ethers'
 import { Profile } from './profile'
 import { processLogs } from './utils/logs'
-import { FungiblePosition, LogType, Transition } from './type'
+import { Position, LogType, Transition } from './type'
 
 export class Account {
   profile: Profile
@@ -9,7 +9,7 @@ export class Account {
   signer?: Signer
   blockNumber: number = 0
   logIndex: number = 0
-  positions: { [id: string]: FungiblePosition } = {}
+  positions: { [id: string]: Position } = {}
   transitions: Transition[] = []
   balances: { [token: string]: BigNumber } = {}
 
