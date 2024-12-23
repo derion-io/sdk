@@ -16,15 +16,6 @@ export class StateLoader {
     this.mc = new Multicall({ ethersProvider: this.provider, tryAggregate: true });
   }
 
-  async loadPools(addresses: string[]): Promise<SdkPools> {
-    const pools: SdkPools = {}
-    addresses.forEach(address => {
-      pools[address] = { address }
-    })
-    await this.update({ pools })
-    return pools
-  }
-
   async update({
     pools,
   }: {

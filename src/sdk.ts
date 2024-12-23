@@ -35,6 +35,14 @@ export class DerionSDK {
     return new Account(this.profile, address, signer)
   }
 
+  importPools(pools: SdkPools, poolAddresses: string[]) {
+    poolAddresses.forEach(address => {
+      if (!pools[address]) {
+        pools[address] = { address }
+      }
+    })
+  }
+
   createSwapper = (url?: ConnectionInfo | string, network?: Networkish) => {
     return new Swapper(this.profile.configs, this.profile, url, network)
   }

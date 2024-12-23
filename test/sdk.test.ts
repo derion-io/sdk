@@ -7,7 +7,7 @@ import { numberToWei } from '../src/utils/helper'
 import { VoidSigner } from 'ethers'
 import { formatPositionView } from '../src/utils/positions'
 import path from 'path'
-import { LogType } from '../src/type'
+import { LogType, SdkPools } from '../src/type'
 
 const interceptor = new Interceptor()
 
@@ -35,7 +35,9 @@ describe('SDK', () => {
 
     const stateLoader = sdk.getStateLoader(rpcUrl)
 
-    const pools = await stateLoader.loadPools(poolAddresses)
+    const pools: SdkPools = {}
+    sdk.importPools(pools, poolAddresses)
+    await stateLoader.update({ pools })
 
     const account = sdk.createAccount(accountAddress)
     account.processLogs(txLogs)
@@ -56,10 +58,13 @@ describe('SDK', () => {
     const signer = new VoidSigner(accountAddress, new JsonRpcProvider(rpcUrl));
 
     const txLogs = await loadAccountLogs(rpcUrl, chainId, accountAddress)
-    const poolAdrs = sdk.extractLogs(txLogs)
+    const { poolAddresses } = sdk.extractLogs(txLogs)
 
     const stateLoader = sdk.getStateLoader(rpcUrl)
-    const pools = await stateLoader.loadPools(poolAdrs.poolAddresses)
+    const pools: SdkPools = {}
+    sdk.importPools(pools, poolAddresses)
+    await stateLoader.update({ pools })
+
     const account = sdk.createAccount(accountAddress)
     const poolToSwap = '0xf3cE4cbfF83AE70e9F76b22cd9b683F167d396dd'
     account.processLogs(txLogs)
@@ -111,10 +116,12 @@ describe('SDK', () => {
     const signer = new VoidSigner(accountAddress, new JsonRpcProvider(rpcUrl));
 
     const txLogs = await loadAccountLogs(rpcUrl, chainId, accountAddress)
-    const poolAdrs = sdk.extractLogs(txLogs)
+    const { poolAddresses } = sdk.extractLogs(txLogs)
 
     const stateLoader = sdk.getStateLoader(rpcUrl)
-    const pools = await stateLoader.loadPools(poolAdrs.poolAddresses)
+    const pools: SdkPools = {}
+    sdk.importPools(pools, poolAddresses)
+    await stateLoader.update({ pools })
     const account = sdk.createAccount(accountAddress)
     account.processLogs(txLogs)
     const swapper = sdk.createSwapper(rpcUrl)
@@ -169,10 +176,12 @@ describe('SDK', () => {
     const signer = new VoidSigner(accountAddress, new JsonRpcProvider(rpcUrl));
 
     const txLogs = await loadAccountLogs(rpcUrl, chainId, accountAddress)
-    const poolAdrs = sdk.extractLogs(txLogs)
+    const { poolAddresses } = sdk.extractLogs(txLogs)
 
     const stateLoader = sdk.getStateLoader(rpcUrl)
-    const pools = await stateLoader.loadPools(poolAdrs.poolAddresses)
+    const pools: SdkPools = {}
+    sdk.importPools(pools, poolAddresses)
+    await stateLoader.update({ pools })
     const account = sdk.createAccount(accountAddress)
     account.processLogs(txLogs)
     const swapper = sdk.createSwapper(rpcUrl)
@@ -220,10 +229,12 @@ describe('SDK', () => {
     const signer = new VoidSigner(accountAddress, new JsonRpcProvider(rpcUrl));
 
     const txLogs = await loadAccountLogs(rpcUrl, chainId, accountAddress)
-    const poolAdrs = sdk.extractLogs(txLogs)
+    const { poolAddresses } = sdk.extractLogs(txLogs)
 
     const stateLoader = sdk.getStateLoader(rpcUrl)
-    const pools = await stateLoader.loadPools(poolAdrs.poolAddresses)
+    const pools: SdkPools = {}
+    sdk.importPools(pools, poolAddresses)
+    await stateLoader.update({ pools })
     const account = sdk.createAccount(accountAddress)
     account.processLogs(txLogs)
     const positionPoolARB = '0xf3cE4cbfF83AE70e9F76b22cd9b683F167d396dd' // Derion pool ARB/ETH
@@ -273,10 +284,12 @@ describe('SDK', () => {
     const signer = new VoidSigner(accountAddress, new JsonRpcProvider(rpcUrl));
 
     const txLogs = await loadAccountLogs(rpcUrl, chainId, accountAddress)
-    const poolAdrs = sdk.extractLogs(txLogs)
+    const { poolAddresses } = sdk.extractLogs(txLogs)
 
     const stateLoader = sdk.getStateLoader(rpcUrl)
-    const pools = await stateLoader.loadPools(poolAdrs.poolAddresses)
+    const pools: SdkPools = {}
+    sdk.importPools(pools, poolAddresses)
+    await stateLoader.update({ pools })
     const account = sdk.createAccount(accountAddress)
     account.processLogs(txLogs)
     const positionPoolARB = '0xf3cE4cbfF83AE70e9F76b22cd9b683F167d396dd' // Derion pool ARB/ETH
