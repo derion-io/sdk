@@ -1,6 +1,7 @@
 import { BigNumber } from "ethers"
-import { NATIVE_ADDRESS, POOL_IDS, Q128 } from "./constant"
+import { M256, NATIVE_ADDRESS, POOL_IDS, Q128 } from "./constant"
 import { getAddress, hexDataSlice, hexlify, hexZeroPad } from "ethers/lib/utils"
+import { DIV, NUM } from "./helper"
 
 export const bn = BigNumber.from
 
@@ -99,7 +100,7 @@ export const powX128 = (x: BigNumber, k: number): BigNumber => {
     y = y.mul(x).shr(128)
   }
   if (neg) {
-    return Q256M.div(y)
+    return M256.div(y)
   }
   return y
 }

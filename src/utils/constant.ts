@@ -8,7 +8,6 @@ export const BIG_E18 = bn(10).pow(18)
 export const BIG_0 = bn(0)
 export const BIG_M1 = bn(-1)
 
-export const LARGE_VALUE = '0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF'
 export const NATIVE_ADDRESS = '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE'
 export const MINI_SECOND_PER_DAY = 86400000
 
