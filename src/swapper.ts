@@ -51,6 +51,7 @@ export type MultiSwapParameterType = {
     signer: Signer
     pools: Pools
     decimals?: { [token: string]: number }
+    indexR?: BigNumber
   }
 }
 
@@ -64,9 +65,8 @@ export type SwapCallDataParameterType = {
   deps: {
     signer: Signer
     pools: Pools
-    decimals?: {
-      [token: string]: number
-    }
+    decimals?: { [token: string]: number }
+    indexR?: BigNumber
   }
 }
 export type SwapCallDataInputType = {
@@ -207,7 +207,7 @@ export class Swapper {
     poolOut,
     sideIn,
     sideOut,
-    deps: { signer, pools, decimals },
+    deps: { signer, pools, decimals, indexR },
   }: SwapCallDataParameterType): Promise<SwapCallDataReturnType> {
       const needAggregator = isAddress(step.tokenIn) && this.wrapToken(step.tokenIn) !== TOKEN_R
       const inputs =
@@ -289,7 +289,7 @@ export class Swapper {
             amount: amountIn,
             payer: account,
             recipient: account,
-            INDEX_R: this.getIndexR(TOKEN_R),
+            INDEX_R: indexR ?? this.getIndexR(TOKEN_R),
           }),
         )
       } else {
@@ -308,7 +308,7 @@ export class Swapper {
             maturity: 0,
             payer: account,
             recipient: account,
-            INDEX_R: this.getIndexR(TOKEN_R),
+            INDEX_R: indexR ?? this.getIndexR(TOKEN_R),
           }),
         )
       }
@@ -324,9 +324,9 @@ export class Swapper {
     poolOut,
     sideIn,
     sideOut,
-    deps: { signer, pools },
+    deps: { signer, pools, indexR },
   }: SwapCallDataParameterType): Promise<SwapCallDataReturnType> {
-    const swapCallData = await this.getSwapCallData({ step, TOKEN_R, poolIn, poolOut, sideIn, sideOut, deps: { signer, pools } })
+    const swapCallData = await this.getSwapCallData({ step, TOKEN_R, poolIn, poolOut, sideIn, sideOut, deps: { signer, pools, indexR } })
     const inputs = [
       {
         mode: TRANSFER,
@@ -351,13 +351,14 @@ export class Swapper {
   }
   async convertStepToActions({
     steps,
-    deps: { signer, pools, decimals },
+    deps: { signer, pools, decimals, indexR },
   }: {
     steps: Array<SwapStepType>
     deps: {
       signer: Signer
       pools: Pools
       decimals?: { [token: string]: number }
+      indexR?: BigNumber
     }
   }): Promise<{
     params: any
@@ -418,7 +419,7 @@ export class Swapper {
           poolOut,
           sideIn,
           sideOut,
-          deps: { signer, pools },
+          deps: { signer, pools, indexR },
         })
 
         metaDatas.push(
@@ -442,7 +443,7 @@ export class Swapper {
           poolOut,
           sideIn: sideIn,
           sideOut: sideOut,
-          deps: { signer, pools, decimals },
+          deps: { signer, pools, decimals, indexR },
         })
         metaDatas.push({
           code: this.helperContract.address,
@@ -592,6 +593,7 @@ export class Swapper {
       pools: Pools
       signer: Signer
       decimals?: { [token: string]: number }
+      indexR?: BigNumber
     }
     callStatic?: boolean
     gasLimit?: BigNumber
@@ -629,6 +631,7 @@ export class Swapper {
       pools: Pools
       signer: Signer
       decimals?: { [token: string]: number }
+      indexR?: BigNumber
     }
     gasLimit?: BigNumber
   }): Promise<any> => {
