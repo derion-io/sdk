@@ -212,5 +212,10 @@ export function processLogs(
     if (Object.keys(transition.netTransfers).length) {
       transitions.push(transition)
     }
+    for (const token in balances) {
+      if (!balances[token]?.gt(0)) {
+        delete balances[token]
+      }
+    }
   }
 }
