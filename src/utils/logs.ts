@@ -10,6 +10,7 @@ export const TOPICS: { [topic0: string]: string } = {
   ['0xc3d58168c5ae7397731d063d5bbf3d657854427343f4c083240f7aacaa2d0f62']: 'TransferSingle', // 1155
   ['0x4a39dc06d4c0dbc64b70af90fd698a233a518aa5d07e595d983b8c0526c8f7fb']: 'TransferBatch',  // 1155
   ['0x4dfe1bbbcf077ddc3e01291eea2d5c70c2b422b415d95645b9adcfd678cb1d63']: 'LogFeeTransfer', // Polygon Native POL
+  ['0x8c5be1e5ebec7d5bd14f71427d1e84f3dd0314c0f7b2291e5b200ac8c7c3b925']: 'Approval',       // 20 Approval
 }
 
 export function extractPoolAddresses(txLogs: LogType[][], tokenDerion: string): string[] {
@@ -41,6 +42,7 @@ export function processLogs(
   positions: { [id: string]: Position },
   transitions: Transition[],
   balances: { [token: string]: BigNumber },
+  allowances: { [spenderToken: string]: BigNumber },
   txLogs: LogType[][],
   tokenDerion: string,
   account: string,
@@ -206,6 +208,19 @@ export function processLogs(
         const [ids, amounts] = defaultAbiCoder.decode(["bytes32[]", "uint256[]"], log.data)
         for (let i = 0; i < ids.length; ++i) {
           _applyTransfer(ids[i], from, to, amounts[i])
+        }
+      } else if (type == 'Approval') {
+        const owner = getAddress(hexDataSlice(log.topics[1], 12))
+        if (owner == account) {
+          const token = getAddress(log.address)
+          const spender = getAddress(hexDataSlice(log.topics[2], 12))
+          const allowance = BigNumber.from(log.data)
+          const key = spender + '-' + token
+          if (allowance.isZero()) {
+            delete allowances[key]
+          } else {
+            allowances[key] = allowance
+          }
         }
       }
     }

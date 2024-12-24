@@ -12,6 +12,7 @@ export class Account {
   positions: { [id: string]: Position } = {}
   transitions: Transition[] = []
   balances: { [token: string]: BigNumber } = {}
+  allowances: { [spenderToken: string]: BigNumber } = {}
 
   constructor(profile: Profile, address: string, signer?: Signer) {
     this.profile = profile
@@ -32,6 +33,7 @@ export class Account {
       this.positions,
       this.transitions,
       this.balances,
+      this.allowances,
       txLogs,
       this.profile.configs.derivable.token,
       this.address,
