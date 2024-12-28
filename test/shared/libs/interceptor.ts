@@ -10,10 +10,14 @@ import dotenv from 'dotenv'
 dotenv.config()
 
 export function Interceptor() {
-  this.bodyCached = new Map<string, any>()
+  this.requestBodies = new Map<string, any>()
   this.interceptor = new BatchInterceptor({
     name: 'batch-interceptor',
-    interceptors: [new ClientRequestInterceptor(), new XMLHttpRequestInterceptor(), new FetchInterceptor()],
+    interceptors: [
+      new ClientRequestInterceptor(),
+      new XMLHttpRequestInterceptor(),
+      new FetchInterceptor(),
+    ],
   })
   this.context = ''
   this.requests = {}
@@ -43,14 +47,14 @@ export function Interceptor() {
 
   this.interceptor.apply()
 
-  this.interceptor.on('request', async ({ request, requestId: requestIdOriginal }) => {
+  this.interceptor.on('request', async ({ request, requestId }) => {
     if (!this.context) {
       return
     }
     try {
-      const requestId = await this.calcRequestID(request, requestIdOriginal)
-      this.requests[requestId] = request
-      const resourcePath = this.getResourcePath(requestId)
+      const requestHash = await this.caclRequestHash(request, requestId)
+      this.requests[requestHash] = request
+      const resourcePath = this.getResourcePath(requestHash)
       if (fs.existsSync(resourcePath)) {
         const resourceData = fs.readFileSync(resourcePath, 'utf8')
         if (resourceData) {
@@ -77,10 +81,10 @@ export function Interceptor() {
     }
   })
 
-  this.interceptor.on('response', async ({ response, isMockedResponse, request, requestId: requestIdOriginal }) => {
-    const requestId = await this.calcRequestID(request, requestIdOriginal)
-    this.responses[requestId] = response
-    const resourcePath = this.getResourcePath(requestId, true)
+  this.interceptor.on('response', async ({ response, isMockedResponse, request, requestId }) => {
+    const requestHash = await this.caclRequestHash(request, requestId)
+    this.responses[requestHash] = response
+    const resourcePath = this.getResourcePath(requestHash, true)
     if (!this.context) {
       if (process.env.TRACE) {
         console.log('NO CONTEXT', resourcePath, request, response)
@@ -125,16 +129,16 @@ export function Interceptor() {
     }
   })
 
-  this.calcRequestID = async (request: Request, requestId: string): Promise<string> => {
+  this.caclRequestHash = async (request: Request, requestId: string): Promise<string> => {
     let { url, method } = request
     if (method === 'POST') {
       let body
-      if (this.bodyCached.has(requestId)) {
-        body = this.bodyCached.get(requestId)
+      if (this.requestBodies.has(requestId)) {
+        body = this.requestBodies.get(requestId)
       } else {
         body = await request.clone().json()
         delete body.id
-        this.bodyCached.set(requestId, body)
+        this.requestBodies.set(requestId, body)
       }
 
       const obj = { url, body }
