@@ -1,7 +1,7 @@
 import { BigNumber, Signer } from 'ethers'
 import { Profile } from './profile'
 import { processLogs } from './utils/logs'
-import { Position, LogType, Transition } from './type'
+import { Position, LogType, Transition, Pools } from './type'
 
 export class Account {
   profile: Profile
@@ -20,7 +20,7 @@ export class Account {
     this.signer = signer
   }
 
-  processLogs = async (txLogs: LogType[][]) => {
+  processLogs = async (txLogs: LogType[][], pools: Pools = {}) => {
     txLogs = txLogs.filter(logs => logs.some(log =>
       log.blockNumber > this.blockNumber ||
       (log.blockNumber == this.blockNumber && log.logIndex > this.logIndex)
@@ -35,6 +35,7 @@ export class Account {
       this.balances,
       this.allowances,
       txLogs,
+      pools,
       this.profile.configs.derivable.token,
       this.address,
     )

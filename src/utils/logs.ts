@@ -1,7 +1,9 @@
 import { BigNumber } from 'ethers'
 import { defaultAbiCoder, getAddress, hexDataSlice } from 'ethers/lib/utils'
-import { Position, LogType, Transition } from '../type'
+import { Position, LogType, Transition, Pools } from '../type'
 import { BIG_0 } from './constant'
+
+export const STABLE_SYMBOLS = ['USD', 'DAI']
 
 export const TOPICS: { [topic0: string]: string } = {
   ['0xba5c330f8eb505cee9b4eb08fecf34234a327cfb6f9e480f9d3b4dfae5b23e4d']: 'Position',       // Derion Pool
@@ -44,6 +46,7 @@ export function processLogs(
   balances: { [token: string]: BigNumber },
   allowances: { [spenderToken: string]: BigNumber },
   txLogs: LogType[][],
+  pools: Pools,
   tokenDerion: string,
   account: string,
 ) {
@@ -132,20 +135,23 @@ export function processLogs(
               } else {
                 pos.price = price
               }
-              // if (!priceR.gt(0)) {
-              //   const pool = pools[poolAddress]
-              //   // special case for INDEX = TOKEN_R / STABLECOIN
-              //   if (pool.config.TOKEN_R == pool.baseToken && stablecoins.includes(pool.quoteToken)) {
-              //     priceR = price
-              //   }
-              // }
+              if (!priceR?.gt(0)) {
+                const pool = pools[poolAddress]
+                // special case for INDEX = TOKEN_R / STABLECOIN
+                if (pool?.metadata?.base.address &&
+                  pool.metadata.base.address == pool?.config?.TOKEN_R
+                  && STABLE_SYMBOLS.some(sym => pool.metadata?.quote.symbol.includes(sym))
+                ) {
+                  priceR = price
+                }
+              }
             }
             const posValueR = pos.rPerBalance.mul(pos.balance).shr(128)
             if (valueR.gt(0)) {
               transition.rPerAmount = valueR.shl(128).div(amount)
               pos.rPerBalance = posValueR.add(valueR).shl(128).div(newBalance)
             }
-            if (priceR.gt(0)) {
+            if (priceR?.gt(0)) {
               transition.priceR = priceR
               if (valueR.gt(0)) {
                 if (posValueR.gt(0)) {

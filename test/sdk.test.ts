@@ -40,8 +40,8 @@ describe('SDK', () => {
     await stateLoader.update({ pools })
 
     const account = sdk.createAccount(accountAddress)
-    account.processLogs(txLogs)
-    account.processLogs(txLogs) // the second call does nothing
+    account.processLogs(txLogs, pools)
+    account.processLogs(txLogs, pools) // the second call does nothing
 
     // const posViews = Object.values(account.positions).map(pos => sdk.calcPositionState(pos, pools))
     // console.log(...posViews.map(pv => formatPositionView(pv)))
