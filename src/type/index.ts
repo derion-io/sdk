@@ -90,6 +90,23 @@ export type Pool = {
     MATURITY_RATE: BigNumber
     OPEN_RATE: BigNumber
   }
+  metadata?: {
+    reserve: {
+      address: string
+      symbol: string
+      decimals: number
+    }
+    base: {
+      address: string
+      symbol: string
+      decimals: number
+    },
+    quote: {
+      address: string
+      symbol: string
+      decimals: number
+    }
+  }
   state?: {
     R: BigNumber
     a: BigNumber
