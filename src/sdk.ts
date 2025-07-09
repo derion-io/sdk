@@ -5,7 +5,7 @@ import { StateLoader } from './stateLoader'
 import { Networkish } from '@ethersproject/providers'
 import { ConnectionInfo } from 'ethers/lib/utils'
 import { extractPoolAddresses } from './utils/logs'
-import {Swapper} from './swapper'
+import { Swapper } from './swapper'
 import { calcPositionState, PositionView } from './utils/positions'
 import { Position, LogType, ProfileConfigs, Pools } from './type'
 
@@ -22,7 +22,7 @@ export class DerionSDK {
   }
 
   getStateLoader(url?: ConnectionInfo | string, network?: Networkish) {
-    return this.stateLoader = this.stateLoader ?? new StateLoader(this.profile, url, network)
+    return (this.stateLoader = this.stateLoader ?? new StateLoader(this.profile, url, network))
   }
 
   extractLogs = (txLogs: LogType[][]): { poolAddresses: string[] } => {
@@ -36,7 +36,7 @@ export class DerionSDK {
   }
 
   importPools(pools: Pools, poolAddresses: string[]) {
-    poolAddresses.forEach(address => {
+    poolAddresses.forEach((address) => {
       if (!pools[address]) {
         pools[address] = { address }
       }
@@ -47,12 +47,7 @@ export class DerionSDK {
     return new Swapper(this.profile.configs, this.profile, url, network)
   }
 
-  calcPositionState = (
-    position: Position,
-    pools: Pools,
-    currentPriceR = position.priceR,
-    balance = position.balance,
-  ): PositionView => {
+  calcPositionState = (position: Position, pools: Pools, currentPriceR = position.priceR, balance = position.balance): PositionView => {
     return calcPositionState(position, pools, currentPriceR, balance)
   }
 }

@@ -348,14 +348,14 @@ export function mergeTwoUniqSortedLogs(a: LogType[], b: LogType[]): LogType[] {
     }
     r.push(b[j++])
   }
-  return r;
+  return r
 }
 
 export function formatQ128(n: BigNumber, PRECISION = 10000): number {
   if (n.isNegative()) {
     return -formatQ128(bn(0).sub(n))
   }
-  return n.mul(PRECISION).shr(128).toNumber()/PRECISION
+  return n.mul(PRECISION).shr(128).toNumber() / PRECISION
 }
 
 export function formatPercentage(n: number, precision = 2): string {
@@ -384,7 +384,7 @@ export const powX128 = (x: BigNumber, k: number): BigNumber => {
   let y = Q128
   const neg = k < 0
   if (neg) {
-    k = -k;
+    k = -k
   }
   for (let i = 0; i < k; ++i) {
     y = y.mul(x).shr(128)

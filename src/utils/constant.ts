@@ -1,4 +1,4 @@
-import { bn } from "."
+import { bn } from '.'
 
 export const SECONDS_PER_DAY = 86400
 
@@ -12,7 +12,7 @@ export const NATIVE_ADDRESS = '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE'
 export const MINI_SECOND_PER_DAY = 86400000
 
 export const PARA_DATA_BASE_URL = 'https://api.paraswap.io/prices'
-export const PARA_VERSION = "5"
+export const PARA_VERSION = '5'
 export const PARA_BUILD_TX_BASE_URL = 'https://api.paraswap.io/transactions'
 
 export const POOL_IDS = {

@@ -1,8 +1,8 @@
-import { getAddress, hexDataSlice } from "ethers/lib/utils"
-import { BigNumber } from "ethers"
-import { formatPercentage, formatQ128, IEW, kx, NUM, powX128, rateFromHL, SHL, thousandsInt, WEI, xr } from "./helper"
-import { BIG_E18, POOL_IDS } from "./constant"
-import { Position, Pool, Pools } from "../type"
+import { getAddress, hexDataSlice } from 'ethers/lib/utils'
+import { BigNumber } from 'ethers'
+import { formatPercentage, formatQ128, IEW, kx, NUM, powX128, rateFromHL, SHL, thousandsInt, WEI, xr } from './helper'
+import { BIG_E18, POOL_IDS } from './constant'
+import { Position, Pool, Pools } from '../type'
 
 const { A, B, C } = POOL_IDS
 
@@ -53,9 +53,12 @@ export function calcPoolInfo(pool: Pool): any {
   sides[A].k = Math.min(K, kx(K, R, a, spot, MARK))
   sides[B].k = Math.min(K, kx(-K, R, b, spot, MARK))
   sides[C].k = Number(
-    IEW(rA.mul(WEI(sides[A].k))
-      .add(rB.mul(WEI(sides[B].k)))
-      .div(rA.add(rB)))
+    IEW(
+      rA
+        .mul(WEI(sides[A].k))
+        .add(rB.mul(WEI(sides[B].k)))
+        .div(rA.add(rB)),
+    ),
   )
 
   const interestRate = rateFromHL(INTEREST_HL, K)
@@ -95,10 +98,7 @@ export function calcPoolInfo(pool: Pool): any {
   }
 }
 
-export function calcPoolSide(
-  pool: Pool,
-  side: number,
-): any {
+export function calcPoolSide(pool: Pool, side: number): any {
   if (!pool?.config || !pool?.view || !pool?.state) {
     throw new Error('missing pool data')
   }
@@ -127,12 +127,7 @@ export function calcPoolSide(
   }
 }
 
-export function calcPositionState(
-  position: Position,
-  pools: Pools,
-  currentPriceR?: BigNumber,
-  balance = position.balance,
-): PositionView {
+export function calcPositionState(position: Position, pools: Pools, currentPriceR?: BigNumber, balance = position.balance): PositionView {
   const { id, price, priceR, rPerBalance, maturity } = position
   const poolAddress = getAddress(hexDataSlice(id, 12))
   const side = BigNumber.from(hexDataSlice(id, 0, 12)).toNumber()
@@ -157,10 +152,8 @@ export function calcPositionState(
 
   const { leverage, effectiveLeverage, dgA, dgB, funding } = calcPoolSide(pool, side)
 
-  const L =
-    side == A ? NUM(leverage) :
-    side == B ? -NUM(leverage) : 0
-  
+  const L = side == A ? NUM(leverage) : side == B ? -NUM(leverage) : 0
+
   const result: PositionView = {
     poolAddress,
     side,
@@ -199,9 +192,7 @@ export function calcPositionState(
   return result
 }
 
-export function formatPositionView(
-  pv: PositionView
-): any {
+export function formatPositionView(pv: PositionView): any {
   const res: any = {
     name: `${pv.side == A ? 'Long' : pv.side == B ? 'Short' : 'LP'} x${pv.leverage}`,
     pool: pv.poolAddress,

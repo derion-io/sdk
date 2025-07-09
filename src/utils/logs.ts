@@ -6,13 +6,13 @@ import { BIG_0 } from './constant'
 export const STABLE_SYMBOLS = ['USD', 'DAI']
 
 export const TOPICS: { [topic0: string]: string } = {
-  ['0xba5c330f8eb505cee9b4eb08fecf34234a327cfb6f9e480f9d3b4dfae5b23e4d']: 'Position',       // Derion Pool
-  ['0xf7462f2a86b97b14a4669ae97bf107eb47f1574e511038ba3bb2c0cace5bb227']: 'Swap',           // Derion Helper
-  ['0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef']: 'Transfer',       // 20, 721
-  ['0xc3d58168c5ae7397731d063d5bbf3d657854427343f4c083240f7aacaa2d0f62']: 'TransferSingle', // 1155
-  ['0x4a39dc06d4c0dbc64b70af90fd698a233a518aa5d07e595d983b8c0526c8f7fb']: 'TransferBatch',  // 1155
-  ['0x4dfe1bbbcf077ddc3e01291eea2d5c70c2b422b415d95645b9adcfd678cb1d63']: 'LogFeeTransfer', // Polygon Native POL
-  ['0x8c5be1e5ebec7d5bd14f71427d1e84f3dd0314c0f7b2291e5b200ac8c7c3b925']: 'Approval',       // 20 Approval
+  '0xba5c330f8eb505cee9b4eb08fecf34234a327cfb6f9e480f9d3b4dfae5b23e4d': 'Position', // Derion Pool
+  '0xf7462f2a86b97b14a4669ae97bf107eb47f1574e511038ba3bb2c0cace5bb227': 'Swap', // Derion Helper
+  '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef': 'Transfer', // 20, 721
+  '0xc3d58168c5ae7397731d063d5bbf3d657854427343f4c083240f7aacaa2d0f62': 'TransferSingle', // 1155
+  '0x4a39dc06d4c0dbc64b70af90fd698a233a518aa5d07e595d983b8c0526c8f7fb': 'TransferBatch', // 1155
+  '0x4dfe1bbbcf077ddc3e01291eea2d5c70c2b422b415d95645b9adcfd678cb1d63': 'LogFeeTransfer', // Polygon Native POL
+  '0x8c5be1e5ebec7d5bd14f71427d1e84f3dd0314c0f7b2291e5b200ac8c7c3b925': 'Approval', // 20 Approval
 }
 
 export function extractPoolAddresses(txLogs: LogType[][], tokenDerion: string): string[] {
@@ -25,11 +25,11 @@ export function extractPoolAddresses(txLogs: LogType[][], tokenDerion: string): 
       const topic0 = log.topics?.[0]
       const type = TOPICS[topic0]
       if (type == 'TransferSingle') {
-        const [id] = defaultAbiCoder.decode(["bytes32", "uint"], log.data)
+        const [id] = defaultAbiCoder.decode(['bytes32', 'uint'], log.data)
         const poolAddress = getAddress(hexDataSlice(id, 12))
         poolAddresses[poolAddress] = true
       } else if (type == 'TransferBatch') {
-        const [ids] = defaultAbiCoder.decode(["bytes32[]", "uint256[]"], log.data)
+        const [ids] = defaultAbiCoder.decode(['bytes32[]', 'uint256[]'], log.data)
         for (let i = 0; i < ids.length; ++i) {
           const poolAddress = getAddress(hexDataSlice(ids[i], 12))
           poolAddresses[poolAddress] = true
@@ -60,7 +60,7 @@ export function processLogs(
       timestamp: logs[0].timeStamp ? BigNumber.from(logs[0].timeStamp).toNumber() : undefined,
       netTransfers: {},
     }
-    const bingo = logs.some(log => {
+    const bingo = logs.some((log) => {
       if (log.address != tokenDerion) return false
       const topic0 = log.topics?.[0]
       const type = TOPICS[topic0]
@@ -83,21 +83,21 @@ export function processLogs(
         // const operator = getAddress(hexDataSlice(log.topics[1], 12))
         const from = getAddress(hexDataSlice(log.topics[2], 12))
         const to = getAddress(hexDataSlice(log.topics[3], 12))
-        const [id, amount] = defaultAbiCoder.decode(["bytes32", "uint"], log.data)
+        const [id, amount] = defaultAbiCoder.decode(['bytes32', 'uint'], log.data)
         const poolAddress = getAddress(hexDataSlice(id, 12))
         // const side = BigNumber.from(hexDataSlice(id, 0, 12)).toNumber()
         // const posId = pool + '-' + side
         // console.log({from, to, id, amount})
-        const pos = positions[id] = positions[id] ?? {
+        const pos = (positions[id] = positions[id] ?? {
           id,
           balance: balances[id] ?? BIG_0,
           priceR: BIG_0,
           price: BIG_0,
           rPerBalance: BIG_0,
-        }
+        })
         if (to == account) {
           let priceR = BIG_0
-          logs.some(log => {
+          logs.some((log) => {
             const topic0 = log.topics?.[0]
             const type = TOPICS[topic0]
             if (type != 'Swap') {
@@ -106,12 +106,12 @@ export function processLogs(
             // const payer = getAddress(hexDataSlice(log.topics[1], 12))
             // const recipient = getAddress(hexDataSlice(log.topics[2], 12))
             // const index = getAddress(hexDataSlice(log.topics[3], 12))
-            const datas = defaultAbiCoder.decode(["address", "uint", "uint", "uint", "uint", "uint", "uint"], log.data)
+            const datas = defaultAbiCoder.decode(['address', 'uint', 'uint', 'uint', 'uint', 'uint', 'uint'], log.data)
             const sqrtPriceR = datas[6]
             priceR = sqrtPriceR.mul(sqrtPriceR).shr(128)
             return true
           })
-          logs.some(log => {
+          logs.some((log) => {
             const topic0 = log.topics?.[0] ?? 'NOTHING'
             const type = TOPICS[topic0]
             if (type != 'Position') {
@@ -120,7 +120,10 @@ export function processLogs(
             // const payer = getAddress(hexDataSlice(log.topics[1], 12))
             // const recipient = getAddress(hexDataSlice(log.topics[2], 12))
             // const index = getAddress(hexDataSlice(log.topics[3], 12))
-            const [posId, amount, maturity, sqrtPrice, valueR] = defaultAbiCoder.decode(["bytes32", "uint", "uint", "uint", "uint"], log.data)
+            const [posId, amount, maturity, sqrtPrice, valueR] = defaultAbiCoder.decode(
+              ['bytes32', 'uint', 'uint', 'uint', 'uint'],
+              log.data,
+            )
             if (posId != id) {
               return false
             }
@@ -138,9 +141,10 @@ export function processLogs(
               if (!priceR?.gt(0)) {
                 const pool = pools[poolAddress]
                 // special case for INDEX = TOKEN_R / STABLECOIN
-                if (pool?.metadata?.base.address &&
-                  pool.metadata.base.address == pool?.config?.TOKEN_R
-                  && STABLE_SYMBOLS.some(sym => pool.metadata?.quote.symbol.includes(sym))
+                if (
+                  pool?.metadata?.base.address &&
+                  pool.metadata.base.address == pool?.config?.TOKEN_R &&
+                  STABLE_SYMBOLS.some((sym) => pool.metadata?.quote.symbol.includes(sym))
                 ) {
                   priceR = price
                 }
@@ -205,13 +209,13 @@ export function processLogs(
         // ERC1155
         const from = getAddress(hexDataSlice(log.topics[2], 12))
         const to = getAddress(hexDataSlice(log.topics[3], 12))
-        const [id, amount] = defaultAbiCoder.decode(["bytes32", "uint"], log.data)
+        const [id, amount] = defaultAbiCoder.decode(['bytes32', 'uint'], log.data)
         _applyTransfer(id, from, to, amount)
       } else if (type == 'TransferBatch') {
         // ERC1155
         const from = getAddress(hexDataSlice(log.topics[2], 12))
         const to = getAddress(hexDataSlice(log.topics[3], 12))
-        const [ids, amounts] = defaultAbiCoder.decode(["bytes32[]", "uint256[]"], log.data)
+        const [ids, amounts] = defaultAbiCoder.decode(['bytes32[]', 'uint256[]'], log.data)
         for (let i = 0; i < ids.length; ++i) {
           _applyTransfer(ids[i], from, to, amounts[i])
         }

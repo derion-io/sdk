@@ -21,10 +21,9 @@ export class Account {
   }
 
   processLogs = async (txLogs: LogType[][], pools: Pools = {}) => {
-    txLogs = txLogs.filter(logs => logs.some(log =>
-      log.blockNumber > this.blockNumber ||
-      (log.blockNumber == this.blockNumber && log.logIndex > this.logIndex)
-    ))
+    txLogs = txLogs.filter((logs) =>
+      logs.some((log) => log.blockNumber > this.blockNumber || (log.blockNumber == this.blockNumber && log.logIndex > this.logIndex)),
+    )
     if (!txLogs.length) {
       return
     }
@@ -39,8 +38,8 @@ export class Account {
       this.profile.configs.derivable.token,
       this.address,
     )
-    const lastTx = txLogs[txLogs.length-1]
-    const lastLog = lastTx[lastTx.length-1]
+    const lastTx = txLogs[txLogs.length - 1]
+    const lastLog = lastTx[lastTx.length - 1]
     this.blockNumber = lastLog.blockNumber
     this.logIndex = lastLog.logIndex
   }

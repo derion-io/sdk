@@ -47,7 +47,7 @@ describe('SDK', () => {
     // console.log(...posViews.map(pv => formatPositionView(pv)))
 
     const posView = sdk.calcPositionState(account.positions['0x00000000000000000000002090c153fc30f6c2abdd5ff3ccf22bafba872d1509'], pools)
-    expect(formatQ128(posView.netPnL ?? BIG_0)).toBeCloseTo(5.90, 1)
+    expect(formatQ128(posView.netPnL ?? BIG_0)).toBeCloseTo(5.9, 1)
   })
 
   test('native-open', async () => {
@@ -57,7 +57,7 @@ describe('SDK', () => {
     const sdk = new DerionSDK({ chainId })
     await sdk.init()
 
-    const signer = new VoidSigner(accountAddress, new JsonRpcProvider(rpcUrl));
+    const signer = new VoidSigner(accountAddress, new JsonRpcProvider(rpcUrl))
 
     const txLogs = await loadAccountLogs(rpcUrl, chainId, accountAddress)
     const { poolAddresses } = sdk.extractLogs(txLogs)
@@ -79,8 +79,8 @@ describe('SDK', () => {
         amount: numberToWei(0.0001, 18),
         deps: {
           signer,
-          pools
-        }
+          pools,
+        },
       })
       const amountOut = amountOuts[amountOuts.length - 1]
       expect(amountOut.gt(0)).toBeTruthy()
@@ -93,8 +93,8 @@ describe('SDK', () => {
         amount: numberToWei(0.0001, 18),
         deps: {
           signer,
-          pools
-        }
+          pools,
+        },
       })
       const amountOut = amountOuts[amountOuts.length - 1]
       expect(amountOut.gt(0)).toBeTruthy()
@@ -107,8 +107,8 @@ describe('SDK', () => {
         amount: numberToWei(0.0001, 18),
         deps: {
           signer,
-          pools
-        }
+          pools,
+        },
       })
       const amountOut = amountOuts[amountOuts.length - 1]
       expect(amountOut.gt(0)).toBeTruthy()
@@ -124,7 +124,7 @@ describe('SDK', () => {
     const sdk = new DerionSDK({ chainId })
     await sdk.init()
 
-    const signer = new VoidSigner(accountAddress, new JsonRpcProvider(rpcUrl));
+    const signer = new VoidSigner(accountAddress, new JsonRpcProvider(rpcUrl))
 
     const txLogs = await loadAccountLogs(rpcUrl, chainId, accountAddress)
     const { poolAddresses } = sdk.extractLogs(txLogs)
@@ -146,8 +146,8 @@ describe('SDK', () => {
         amount: numberToWei(0.1, 6),
         deps: {
           signer,
-          pools
-        }
+          pools,
+        },
       })
       const amountOut = amountOuts[amountOuts.length - 1]
       expect(amountOut.gt(0)).toBeTruthy()
@@ -161,8 +161,8 @@ describe('SDK', () => {
         amount: numberToWei(0.1, 6),
         deps: {
           signer,
-          pools
-        }
+          pools,
+        },
       })
       const amountOut = amountOuts[amountOuts.length - 1]
       expect(amountOut.gt(0)).toBeTruthy()
@@ -176,8 +176,8 @@ describe('SDK', () => {
         amount: numberToWei(0.1, 6),
         deps: {
           signer,
-          pools
-        }
+          pools,
+        },
       })
       const amountOut = amountOuts[amountOuts.length - 1]
       expect(amountOut.gt(0)).toBeTruthy()
@@ -193,7 +193,7 @@ describe('SDK', () => {
     const sdk = new DerionSDK({ chainId })
     await sdk.init()
 
-    const signer = new VoidSigner(accountAddress, new JsonRpcProvider(rpcUrl));
+    const signer = new VoidSigner(accountAddress, new JsonRpcProvider(rpcUrl))
 
     const txLogs = await loadAccountLogs(rpcUrl, chainId, accountAddress)
     const { poolAddresses } = sdk.extractLogs(txLogs)
@@ -209,11 +209,11 @@ describe('SDK', () => {
       const { amountOuts, gasUsed } = await swapper.simulate({
         tokenIn: '0xaf88d065e77c8cC2239327C5EDb3A432268e5831', // USDC
         tokenOut: packPosId(poolToSwap, POOL_IDS.A),
-        amount: "1000",
+        amount: '1000',
         deps: {
           signer,
-          pools
-        }
+          pools,
+        },
       })
       const amountOut = amountOuts[amountOuts.length - 1]
       expect(amountOut.gt(0)).toBeTruthy()
@@ -223,11 +223,11 @@ describe('SDK', () => {
       const { amountOuts, gasUsed } = await swapper.simulate({
         tokenIn: '0xaf88d065e77c8cC2239327C5EDb3A432268e5831', // USDC
         tokenOut: packPosId(poolToSwap, POOL_IDS.B),
-        amount: "1000",
+        amount: '1000',
         deps: {
           signer,
-          pools
-        }
+          pools,
+        },
       })
       const amountOut = amountOuts[amountOuts.length - 1]
       expect(amountOut.gt(0)).toBeTruthy()
@@ -237,11 +237,11 @@ describe('SDK', () => {
       const { amountOuts, gasUsed } = await swapper.simulate({
         tokenIn: '0xaf88d065e77c8cC2239327C5EDb3A432268e5831', // USDC
         tokenOut: packPosId(poolToSwap, POOL_IDS.C),
-        amount: "1000",
+        amount: '1000',
         deps: {
           signer,
-          pools
-        }
+          pools,
+        },
       })
       const amountOut = amountOuts[amountOuts.length - 1]
       expect(amountOut.gt(0)).toBeTruthy()
@@ -255,7 +255,7 @@ describe('SDK', () => {
     const rpcUrl = RPCs[chainId] ?? throwError()
     const sdk = new DerionSDK({ chainId })
     await sdk.init()
-    const signer = new VoidSigner(accountAddress, new JsonRpcProvider(rpcUrl));
+    const signer = new VoidSigner(accountAddress, new JsonRpcProvider(rpcUrl))
 
     const txLogs = await loadAccountLogs(rpcUrl, chainId, accountAddress)
     const { poolAddresses } = sdk.extractLogs(txLogs)
@@ -276,8 +276,8 @@ describe('SDK', () => {
         amount: account.positions[packPosId(positionPoolARB, POOL_IDS.A)].balance.toString(),
         deps: {
           signer,
-          pools
-        }
+          pools,
+        },
       })
       const amountOut = amountOuts[amountOuts.length - 1]
       expect(amountOut.gt(0)).toBeTruthy()
@@ -290,8 +290,8 @@ describe('SDK', () => {
         amount: account.positions[packPosId(positionPoolARB, POOL_IDS.A)].balance.toString(),
         deps: {
           signer,
-          pools
-        }
+          pools,
+        },
       })
       const amountOut = amountOuts[amountOuts.length - 1]
       expect(amountOut.gt(0)).toBeTruthy()
@@ -304,8 +304,8 @@ describe('SDK', () => {
         amount: account.positions[packPosId(positionPoolARB, POOL_IDS.B)].balance.toString(),
         deps: {
           signer,
-          pools
-        }
+          pools,
+        },
       })
       const amountOut = amountOuts[amountOuts.length - 1]
       expect(amountOut.gt(0)).toBeTruthy()
@@ -319,7 +319,7 @@ describe('SDK', () => {
     const rpcUrl = RPCs[chainId] ?? throwError()
     const sdk = new DerionSDK({ chainId })
     await sdk.init()
-    const signer = new VoidSigner(accountAddress, new JsonRpcProvider(rpcUrl));
+    const signer = new VoidSigner(accountAddress, new JsonRpcProvider(rpcUrl))
 
     const txLogs = await loadAccountLogs(rpcUrl, chainId, accountAddress)
     const { poolAddresses } = sdk.extractLogs(txLogs)
@@ -339,12 +339,12 @@ describe('SDK', () => {
       // console.log('A -> NATIVE')
       const { amountOuts, gasUsed } = await swapper.simulate({
         tokenIn: packPosId(positionPoolARB, POOL_IDS.A),
-        tokenOut: pools[positionPoolARB].config?.TOKEN_R || "",
+        tokenOut: pools[positionPoolARB].config?.TOKEN_R || '',
         amount: account.positions[packPosId(positionPoolARB, POOL_IDS.A)].balance.toString(),
         deps: {
           signer,
-          pools
-        }
+          pools,
+        },
       })
       const amountOut = amountOuts[amountOuts.length - 1]
       expect(amountOut.gt(0)).toBeTruthy()
@@ -359,8 +359,8 @@ describe('SDK', () => {
         amount: account.positions[packPosId(positionPoolARB, POOL_IDS.B)].balance.toString(),
         deps: {
           signer,
-          pools
-        }
+          pools,
+        },
       })
 
       const amountOut = amountOuts[amountOuts.length - 1]
@@ -376,25 +376,24 @@ describe('SDK', () => {
         amount: account.positions[packPosId(positionPoolWETH, POOL_IDS.C)].balance.toString(),
         deps: {
           signer,
-          pools
-        }
+          pools,
+        },
       })
       const amountOut = amountOuts[amountOuts.length - 1]
       expect(amountOut.gt(0)).toBeTruthy()
       expect(gasUsed).toBeLessThan(3000000)
     }
 
-
     {
       // console.log('A -> R')
       const { amountOuts, gasUsed } = await swapper.simulate({
         tokenIn: packPosId(positionPoolARB, POOL_IDS.A),
-        tokenOut: pools[positionPoolARB].config?.TOKEN_R || "",
+        tokenOut: pools[positionPoolARB].config?.TOKEN_R || '',
         amount: account.positions[packPosId(positionPoolARB, POOL_IDS.A)].balance.toString(),
         deps: {
           signer,
-          pools
-        }
+          pools,
+        },
       })
       const amountOut = amountOuts[amountOuts.length - 1]
       expect(amountOut.gt(0)).toBeTruthy()
@@ -405,12 +404,12 @@ describe('SDK', () => {
 
       const { amountOuts, gasUsed } = await swapper.simulate({
         tokenIn: packPosId(positionPoolARB, POOL_IDS.B),
-        tokenOut: pools[positionPoolARB].config?.TOKEN_R || "",
+        tokenOut: pools[positionPoolARB].config?.TOKEN_R || '',
         amount: account.positions[packPosId(positionPoolARB, POOL_IDS.B)].balance.toString(),
         deps: {
           signer,
-          pools
-        }
+          pools,
+        },
       })
 
       const amountOut = amountOuts[amountOuts.length - 1]
@@ -422,12 +421,12 @@ describe('SDK', () => {
 
       const { amountOuts, gasUsed } = await swapper.simulate({
         tokenIn: packPosId(positionPoolWETH, POOL_IDS.C),
-        tokenOut: pools[positionPoolWETH].config?.TOKEN_R || "",
+        tokenOut: pools[positionPoolWETH].config?.TOKEN_R || '',
         amount: account.positions[packPosId(positionPoolWETH, POOL_IDS.C)].balance.toString(),
         deps: {
           signer,
-          pools
-        }
+          pools,
+        },
       })
       const amountOut = amountOuts[amountOuts.length - 1]
       expect(amountOut.gt(0)).toBeTruthy()
@@ -444,8 +443,8 @@ describe('SDK', () => {
         amount: account.positions[packPosId(positionPoolARB, POOL_IDS.A)].balance.toString(),
         deps: {
           signer,
-          pools
-        }
+          pools,
+        },
       })
       const amountOut = amountOuts[amountOuts.length - 1]
       expect(amountOut.gt(0)).toBeTruthy()
@@ -460,8 +459,8 @@ describe('SDK', () => {
         amount: account.positions[packPosId(positionPoolARB, POOL_IDS.B)].balance.toString(),
         deps: {
           signer,
-          pools
-        }
+          pools,
+        },
       })
 
       const amountOut = amountOuts[amountOuts.length - 1]
@@ -477,14 +476,13 @@ describe('SDK', () => {
         amount: account.positions[packPosId(positionPoolWETH, POOL_IDS.C)].balance.toString(),
         deps: {
           signer,
-          pools
-        }
+          pools,
+        },
       })
       const amountOut = amountOuts[amountOuts.length - 1]
       expect(amountOut.gt(0)).toBeTruthy()
       expect(gasUsed).toBeLessThan(3000000)
     }
-
   })
 })
 

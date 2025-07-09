@@ -1,4 +1,4 @@
-import { BigNumber } from "ethers"
+import { BigNumber } from 'ethers'
 
 export interface ProfileConfigs {
   env?: 'development' | 'production'
@@ -28,7 +28,7 @@ export interface DerionConfigs {
   stablecoins: string[]
   tokens?: { [address: string]: { price?: number | string; symbol: string; name: string; decimals: number; logo: string } }
   helperContract: IHelperContract
-  factory: { [factory: string]: { type: 'uniswap2' | 'uniswap3' | 'pancake3'; topic0: string; fetcher?: string; } }
+  factory: { [factory: string]: { type: 'uniswap2' | 'uniswap3' | 'pancake3'; topic0: string; fetcher?: string } }
   fetchers: { [fetcher: string]: { type: 'uniswap2' | 'uniswap3' | 'pancake3'; factory: string[] } }
   chartReplacements?: { [origin: string]: string }
   uniswap: IUniswapContractAddress
@@ -100,7 +100,7 @@ export type Pool = {
       address: string
       symbol: string
       decimals: number
-    },
+    }
     quote: {
       address: string
       symbol: string
@@ -129,21 +129,21 @@ export type Pools = {
 }
 
 export type Position = {
-  id: string,
-  balance: BigNumber,
-  priceR: BigNumber,
-  price: BigNumber,
-  rPerBalance: BigNumber,
-  maturity: number,
+  id: string
+  balance: BigNumber
+  priceR: BigNumber
+  price: BigNumber
+  rPerBalance: BigNumber
+  maturity: number
 }
 
 export type Transition = {
-  txHash: string,
-  blockNumber: number,
-  timestamp?: number,
+  txHash: string
+  blockNumber: number
+  timestamp?: number
   netTransfers: { [token: string]: BigNumber }
-  price?: BigNumber,
-  priceR?: BigNumber,
-  rPerAmount?: BigNumber,
-  maturity?: number,
+  price?: BigNumber
+  priceR?: BigNumber
+  rPerAmount?: BigNumber
+  maturity?: number
 }

@@ -3,10 +3,10 @@ import { BigNumber, Contract, ethers, Signer, utils, VoidSigner } from 'ethers'
 import { ConnectionInfo, isAddress } from 'ethers/lib/utils'
 import { Profile } from './profile'
 import { NATIVE_ADDRESS, POOL_IDS, Q128 } from './utils/constant'
-const { AddressZero } = ethers.constants
 
 import { addressFromToken, sideFromToken, isPosId, packPosId, throwError, unpackPosId, bn } from './utils'
 import { ProfileConfigs, Pools } from './type'
+const { AddressZero } = ethers.constants
 const PAYMENT = 0
 const TRANSFER = 1
 const CALL_VALUE = 2
@@ -135,6 +135,7 @@ export class Swapper {
 
     return address
   }
+
   generateSwapParams(method: string, params: any): { [key: string]: any } {
     const functionInterface = Object.values(this.helperContract.interface.functions).find((f: any) => f.name === method)?.inputs[0]
       .components
@@ -147,15 +148,16 @@ export class Swapper {
 
     return this.helperContract.populateTransaction[method](formattedParams)
   }
+
   getSingleRouteToUSD(
     token: string,
     types: Array<string> = ['uniswap3'],
   ):
     | {
-      quoteTokenIndex: number
-      stablecoin: string
-      address: string
-    }
+        quoteTokenIndex: number
+        stablecoin: string
+        address: string
+      }
     | undefined {
     const {
       routes,
@@ -182,6 +184,7 @@ export class Swapper {
     }
     return undefined
   }
+
   getIndexR(tokenR: string): BigNumber {
     const { quoteTokenIndex, address } = this.getSingleRouteToUSD(tokenR) ?? {}
     if (!address) {
@@ -195,11 +198,12 @@ export class Swapper {
       return r === `${tokenR}-${tokenIn}` || r === `${tokenIn}-${tokenR}`
     })
     if (!this.profile.routes[routeKey || ''] || !this.profile.routes[routeKey || ''][0].address) {
-      console.error(`Can't find router, please select other token`)
-      throw `Can't find router, please select other token`
+      console.error("Can't find router, please select other token")
+      throw "Can't find router, please select other token"
     }
     return this.profile.routes[routeKey || ''][0].address
   }
+
   async getSwapCallData({
     step,
     TOKEN_R,
@@ -209,10 +213,10 @@ export class Swapper {
     sideOut,
     deps: { signer, pools, decimals, indexR },
   }: SwapCallDataParameterType): Promise<SwapCallDataReturnType> {
-      const needAggregator = isAddress(step.tokenIn) && this.wrapToken(step.tokenIn) !== TOKEN_R
-      const inputs =
-        step.tokenIn === NATIVE_ADDRESS
-          ? [
+    const needAggregator = isAddress(step.tokenIn) && this.wrapToken(step.tokenIn) !== TOKEN_R
+    const inputs =
+      step.tokenIn === NATIVE_ADDRESS
+        ? [
             {
               mode: CALL_VALUE,
               token: AddressZero,
@@ -222,7 +226,7 @@ export class Swapper {
               recipient: AddressZero,
             },
           ]
-          : [
+        : [
             {
               mode: !needAggregator ? PAYMENT : TRANSFER,
               eip: isPosId(step.tokenIn) ? 1155 : 20,
@@ -234,89 +238,90 @@ export class Swapper {
                   ? this.helperContract.address
                   : // this.getUniPool(step.tokenIn, poolGroup.TOKEN_R)
                   isPosId(step.tokenIn)
-                    ? poolIn
-                    : poolOut,
+                  ? poolIn
+                  : poolOut,
             },
           ]
 
-      const populateTxData = []
+    const populateTxData = []
 
-      let amountIn = step.payloadAmountIn ? step.payloadAmountIn : step.amountIn
-      const account = await signer.getAddress()
+    let amountIn = step.payloadAmountIn ? step.payloadAmountIn : step.amountIn
+    const account = await signer.getAddress()
 
-      if (needAggregator) {
-        // TODO: handle payloadAmountIn or inputTolerance for aggreateAndOpen
-        const getRateData = {
-          userAddress: this.helperContract.address,
-          ignoreChecks: true,
-          srcToken: step.tokenIn,
-          srcDecimals: decimals?.[step.tokenIn] || 18,
-          destDecimals: decimals?.[step.tokenOut] || 18,
-          srcAmount: amountIn.toString(),
-          destToken: TOKEN_R,
-          partner: 'derion.io',
-          side: 'SELL',
-        }
-        // console.log(getRateData)
-        const openData = {
-          pool: poolOut,
-          side: sideOut,
-        }
-        // const helper = new Contract(this.helperContract.address as string, this.profile.getAbi('Helper'), this.provider)
-        const { openTx, swapData, rateData } = await this.getAggRateAndBuildTxSwapApi(getRateData, openData, signer)
-        // console.log(openTx)
-        populateTxData.push(openTx)
-
-        // populateTxData.push(
-        //   this.generateSwapParams('swapAndOpen', {
-        //     side: idOut,
-        //     deriPool: poolOut,
-        //     uniPool: this.getUniPool(step.tokenIn, poolGroup.TOKEN_R),
-        //     token: step.tokenIn,
-        //     amount: amountIn,
-        //     payer: this.account,
-        //     recipient: this.account,
-        //     INDEX_R: this.RESOURCE.getIndexR(poolGroup.TOKEN_R),
-        //   }),
-        // )
-      } else if (isAddress(step.tokenOut) && this.wrapToken(step.tokenOut) !== TOKEN_R) {
-        populateTxData.push(
-          this.generateSwapParams('closeAndSwap', {
-            side: sideIn,
-            deriPool: poolIn,
-            uniPool: this.getUniPool(step.tokenOut, TOKEN_R),
-            token: step.tokenOut,
-            amount: amountIn,
-            payer: account,
-            recipient: account,
-            INDEX_R: indexR ?? this.getIndexR(TOKEN_R),
-          }),
-        )
-      } else {
-        const OPEN_RATE = pools[poolOut]?.config?.OPEN_RATE
-        if (OPEN_RATE && [POOL_IDS.A, POOL_IDS.B].includes(sideOut)) {
-          amountIn = amountIn.mul(OPEN_RATE).div(Q128)
-        }
-
-        populateTxData.push(
-          this.generateSwapParams('swap', {
-            sideIn: sideIn,
-            poolIn: isPosId(step.tokenIn) ? poolIn : poolOut,
-            sideOut: sideOut,
-            poolOut: isPosId(step.tokenOut) ? poolOut : poolIn,
-            amountIn,
-            maturity: 0,
-            payer: account,
-            recipient: account,
-            INDEX_R: indexR ?? this.getIndexR(TOKEN_R),
-          }),
-        )
+    if (needAggregator) {
+      // TODO: handle payloadAmountIn or inputTolerance for aggreateAndOpen
+      const getRateData = {
+        userAddress: this.helperContract.address,
+        ignoreChecks: true,
+        srcToken: step.tokenIn,
+        srcDecimals: decimals?.[step.tokenIn] || 18,
+        destDecimals: decimals?.[step.tokenOut] || 18,
+        srcAmount: amountIn.toString(),
+        destToken: TOKEN_R,
+        partner: 'derion.io',
+        side: 'SELL',
       }
-      return {
-        inputs,
-        populateTxData,
+      // console.log(getRateData)
+      const openData = {
+        pool: poolOut,
+        side: sideOut,
       }
+      // const helper = new Contract(this.helperContract.address as string, this.profile.getAbi('Helper'), this.provider)
+      const { openTx, swapData, rateData } = await this.getAggRateAndBuildTxSwapApi(getRateData, openData, signer)
+      // console.log(openTx)
+      populateTxData.push(openTx)
+
+      // populateTxData.push(
+      //   this.generateSwapParams('swapAndOpen', {
+      //     side: idOut,
+      //     deriPool: poolOut,
+      //     uniPool: this.getUniPool(step.tokenIn, poolGroup.TOKEN_R),
+      //     token: step.tokenIn,
+      //     amount: amountIn,
+      //     payer: this.account,
+      //     recipient: this.account,
+      //     INDEX_R: this.RESOURCE.getIndexR(poolGroup.TOKEN_R),
+      //   }),
+      // )
+    } else if (isAddress(step.tokenOut) && this.wrapToken(step.tokenOut) !== TOKEN_R) {
+      populateTxData.push(
+        this.generateSwapParams('closeAndSwap', {
+          side: sideIn,
+          deriPool: poolIn,
+          uniPool: this.getUniPool(step.tokenOut, TOKEN_R),
+          token: step.tokenOut,
+          amount: amountIn,
+          payer: account,
+          recipient: account,
+          INDEX_R: indexR ?? this.getIndexR(TOKEN_R),
+        }),
+      )
+    } else {
+      const OPEN_RATE = pools[poolOut]?.config?.OPEN_RATE
+      if (OPEN_RATE && [POOL_IDS.A, POOL_IDS.B].includes(sideOut)) {
+        amountIn = amountIn.mul(OPEN_RATE).div(Q128)
+      }
+
+      populateTxData.push(
+        this.generateSwapParams('swap', {
+          sideIn: sideIn,
+          poolIn: isPosId(step.tokenIn) ? poolIn : poolOut,
+          sideOut: sideOut,
+          poolOut: isPosId(step.tokenOut) ? poolOut : poolIn,
+          amountIn,
+          maturity: 0,
+          payer: account,
+          recipient: account,
+          INDEX_R: indexR ?? this.getIndexR(TOKEN_R),
+        }),
+      )
+    }
+    return {
+      inputs,
+      populateTxData,
+    }
   }
+
   async getSweepCallData({
     step,
     TOKEN_R,
@@ -349,6 +354,7 @@ export class Swapper {
       populateTxData,
     }
   }
+
   async convertStepToActions({
     steps,
     deps: { signer, pools, decimals, indexR },
@@ -386,9 +392,9 @@ export class Swapper {
         token: isPosId(step.tokenOut) ? this.profile.configs.derivable.token : step.tokenOut,
         id: isPosId(step.tokenOut)
           ? packPosId(
-            addressFromToken(step.tokenOut, TOKEN_R, this.profile.configs.wrappedTokenAddress),
-            sideFromToken(step.tokenOut, TOKEN_R, this.profile.configs.wrappedTokenAddress),
-          )
+              addressFromToken(step.tokenOut, TOKEN_R, this.profile.configs.wrappedTokenAddress),
+              sideFromToken(step.tokenOut, TOKEN_R, this.profile.configs.wrappedTokenAddress),
+            )
           : bn(0),
         amountOutMin: step.amountOutMin,
       })
@@ -462,6 +468,7 @@ export class Swapper {
 
     return { params: [outputs, actions], value: nativeAmountToWrap }
   }
+
   async getAggRateAndBuildTxSwapApi(
     getRateData: rateDataAggregatorType,
     openData: SwapAndOpenAggregatorType,
@@ -506,10 +513,13 @@ export class Swapper {
     const amount = getRateData?.srcAmount || getRateData.destAmount
     const rateData = await (
       await fetch(
-        `${this.paraDataBaseURL}/?version=${this.paraDataBaseVersion}&srcToken=${getRateData.srcToken}&srcDecimals=${getRateData?.srcDecimals || 18}&destToken=${getRateData.destToken
-        }&destDecimals=${getRateData?.destDecimals || 18}&amount=${amount}&side=${getRateData.side}&excludeDirectContractMethods=${getRateData.excludeDirectContractMethods || false
-        }&otherExchangePrices=${getRateData.otherExchangePrices || true}&partner=${getRateData.partner}&network=${this.profile.chainId
-        }&userAddress=${address}`,
+        `${this.paraDataBaseURL}/?version=${this.paraDataBaseVersion}&srcToken=${getRateData.srcToken}&srcDecimals=${
+          getRateData?.srcDecimals || 18
+        }&destToken=${getRateData.destToken}&destDecimals=${getRateData?.destDecimals || 18}&amount=${amount}&side=${
+          getRateData.side
+        }&excludeDirectContractMethods=${getRateData.excludeDirectContractMethods || false}&otherExchangePrices=${
+          getRateData.otherExchangePrices || true
+        }&partner=${getRateData.partner}&network=${this.profile.chainId}&userAddress=${address}`,
         {
           method: 'GET',
           redirect: 'follow',
@@ -518,12 +528,14 @@ export class Swapper {
     ).json()
     return rateData
   }
+
   async buildAggTx(getRateData: rateDataAggregatorType, rateData: any, slippage?: number) {
     const myHeaders: any = new Headers()
     myHeaders.append('Content-Type', 'application/json')
     const swapData = await (
       await fetch(
-        `${this.paraBuildTxBaseURL}/${this.profile.chainId}?ignoreGasEstimate=${getRateData.ignoreGasEstimate || true}&ignoreAllowance=${getRateData.ignoreAllowance || true
+        `${this.paraBuildTxBaseURL}/${this.profile.chainId}?ignoreGasEstimate=${getRateData.ignoreGasEstimate || true}&ignoreAllowance=${
+          getRateData.ignoreAllowance || true
         }&gasPrice=${rateData.priceRoute.gasCost}`,
         {
           method: 'POST',
@@ -555,13 +567,9 @@ export class Swapper {
 
     if (callStatic) {
       const address = await deps.signer.getAddress()
-      deps.signer = new VoidSigner(address, this.overrideProvider);
+      deps.signer = new VoidSigner(address, this.overrideProvider)
     }
-    const utr = new Contract(
-      this.profile.configs.helperContract.utr,
-      this.profile.getAbi('UTROverride').abi,
-      deps.signer,
-    )
+    const utr = new Contract(this.profile.configs.helperContract.utr, this.profile.getAbi('UTROverride').abi, deps.signer)
     params.push({
       value,
       gasLimit,
@@ -578,6 +586,7 @@ export class Swapper {
     console.log('tx', tx)
     return tx
   }
+
   swap = async ({
     tokenIn,
     amount,
@@ -606,14 +615,14 @@ export class Swapper {
           tokenOut,
           amountIn: bn(amount),
           amountOutMin: 0,
-          useSweep: false
+          useSweep: false,
         },
       ],
       gasLimit,
       callStatic,
       deps,
     })
-    if(callStatic) {
+    if (callStatic) {
       const gasLeft = tx.gasLeft
       const gasUsed = gasLimit.sub(gasLeft).toNumber()
       return {
@@ -623,6 +632,7 @@ export class Swapper {
     }
     return tx
   }
+
   simulate = async (params: {
     tokenIn: string
     tokenOut: string

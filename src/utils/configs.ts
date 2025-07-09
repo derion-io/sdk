@@ -1,6 +1,6 @@
 const DDL_CONFIGS_URL = {
-  development: `https://raw.githubusercontent.com/derion-io/configs/dev/`,
-  production: `https://raw.githubusercontent.com/derion-io/configs/main/`,
+  development: 'https://raw.githubusercontent.com/derion-io/configs/dev/',
+  production: 'https://raw.githubusercontent.com/derion-io/configs/main/',
 }
 
 const loadSDKConfig = async (env: 'development' | 'production', chainId: number) => {

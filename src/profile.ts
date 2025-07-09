@@ -10,8 +10,8 @@ const abis: any = {
 }
 
 const CONFIGS_URL = {
-  development: `https://raw.githubusercontent.com/derion-io/configs/dev/`,
-  production: `https://raw.githubusercontent.com/derion-io/configs/main/`,
+  development: 'https://raw.githubusercontent.com/derion-io/configs/dev/',
+  production: 'https://raw.githubusercontent.com/derion-io/configs/main/',
 }
 
 export class Profile {
@@ -21,6 +21,7 @@ export class Profile {
   routes: {
     [key: string]: { type: string; address: string }[]
   }
+
   whitelistPools: string[]
 
   constructor(configs: ProfileConfigs) {
