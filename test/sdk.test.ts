@@ -8,12 +8,13 @@ import { VoidSigner } from 'ethers'
 import { formatPositionView } from '../src/utils/positions'
 import path from 'path'
 import { LogType, Pools } from '../src/type'
+import { getAddress } from 'ethers/lib/utils'
 
 const interceptor = new Interceptor()
 
 const RPCs = {
   137: 'https://polygon.llamarpc.com',
-  42161: 'https://arbitrum.llamarpc.com',
+  42161: 'https://arbitrum.meowrpc.com',
 }
 
 describe('SDK', () => {
@@ -22,8 +23,8 @@ describe('SDK', () => {
   })
 
   test('logs', async () => {
-    const chainId = 137
-    const accountAddress = '0xE61383556642AF1Bd7c5756b13f19A63Dc8601df'
+    const chainId = 42161
+    const accountAddress = '0x0DbCa96184eEd4C6a1291403c93311ebE6646785'
 
     const rpcUrl = RPCs[chainId] ?? throwError()
 
@@ -46,8 +47,8 @@ describe('SDK', () => {
     // const posViews = Object.values(account.positions).map(pos => sdk.calcPositionState(pos, pools))
     // console.log(...posViews.map(pv => formatPositionView(pv)))
 
-    const posView = sdk.calcPositionState(account.positions['0x00000000000000000000002090c153fc30f6c2abdd5ff3ccf22bafba872d1509'], pools)
-    expect(formatQ128(posView.netPnL ?? BIG_0)).toBeCloseTo(5.9, 1)
+    const posView = sdk.calcPositionState(account.positions['0x000000000000000000000010e4581de9550a80dc1a442a8fc6ccbf980ec1b71c'], pools)
+    expect(formatQ128(posView.netPnL ?? BIG_0)).toBeCloseTo(0.018, 1)
   })
 
   test('native-open', async () => {
@@ -488,5 +489,13 @@ describe('SDK', () => {
 
 async function loadAccountLogs(rpcUrl, chainId, accountAddress): Promise<LogType[][]> {
   const fp = path.join(__dirname, `logs/${chainId}-${accountAddress}.json`)
-  return require(fp)
+  const txLogs = await require(fp)
+
+  for (const logs of txLogs) {
+    for (const log of logs) {
+      log.address = getAddress(log.address)
+    }
+  }
+
+  return txLogs
 }

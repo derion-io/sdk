@@ -10,8 +10,8 @@ const abis: any = {
 }
 
 const CONFIGS_URL = {
-  development: 'https://raw.githubusercontent.com/derion-io/configs/dev/',
-  production: 'https://raw.githubusercontent.com/derion-io/configs/main/',
+  development: 'https://raw.githubusercontent.com/derion-io/configs/v3-dev/',
+  production: 'https://raw.githubusercontent.com/derion-io/configs/v3/',
 }
 
 export class Profile {
@@ -26,7 +26,7 @@ export class Profile {
 
   constructor(configs: ProfileConfigs) {
     this.chainId = configs.chainId
-    this.env = configs.env || 'production'
+    this.env = configs.env || 'development'
   }
 
   async loadConfig() {

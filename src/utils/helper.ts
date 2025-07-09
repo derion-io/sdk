@@ -147,10 +147,12 @@ export const mergeDeep = (target: any, ...sources: any): any => {
 }
 
 export const rateToHL = (r: number, power: number, DURATION = SECONDS_PER_DAY): number => {
+  if (r === 0) return 0
   return Math.ceil((DURATION * Math.LN2) / power / r)
 }
 
 export const rateFromHL = (HL: number, power: number, DURATION = SECONDS_PER_DAY): number => {
+  if (HL === 0) return 0
   return (DURATION * Math.LN2) / power / HL
 }
 
