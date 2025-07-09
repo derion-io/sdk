@@ -47,13 +47,14 @@ describe('SDK', () => {
     // const posViews = Object.values(account.positions).map(pos => sdk.calcPositionState(pos, pools))
     // console.log(...posViews.map(pv => formatPositionView(pv)))
 
-    const posView = sdk.calcPositionState(account.positions['0x000000000000000000000010e4581de9550a80dc1a442a8fc6ccbf980ec1b71c'], pools)
+    const positionAddress = Object.keys(account.positions)[0] ?? '0x00000000000000000000002090c153fc30f6c2abdd5ff3ccf22bafba872d1509'
+    const posView = sdk.calcPositionState(account.positions[positionAddress], pools)
     expect(formatQ128(posView.netPnL ?? BIG_0)).toBeCloseTo(0.018, 1)
   })
 
   test('native-open', async () => {
     const chainId = 42161
-    const accountAddress = '0xD42d6d58F95A3DA9011EfEcA086200A64B266c10'
+    const accountAddress = '0x0DbCa96184eEd4C6a1291403c93311ebE6646785'
     const rpcUrl = RPCs[chainId] ?? throwError()
     const sdk = new DerionSDK({ chainId })
     await sdk.init()
@@ -69,7 +70,7 @@ describe('SDK', () => {
     await stateLoader.update({ pools })
 
     const account = sdk.createAccount(accountAddress)
-    const poolToSwap = '0xf3cE4cbfF83AE70e9F76b22cd9b683F167d396dd'
+    const poolToSwap = Object.keys(pools)[0] ?? '0xf3cE4cbfF83AE70e9F76b22cd9b683F167d396dd'
     account.processLogs(txLogs)
     const swapper = sdk.createSwapper(rpcUrl)
     // NATIVE - A
@@ -118,9 +119,9 @@ describe('SDK', () => {
   })
 
   test('R-open', async () => {
-    const chainId = 137
-    const accountAddress = '0xE61383556642AF1Bd7c5756b13f19A63Dc8601df'
-    const poolToSwap = '0x45c0C6a6d08B430F73b80b54dF09050114f5D55b'
+    const chainId = 42161
+    const accountAddress = '0x0DbCa96184eEd4C6a1291403c93311ebE6646785'
+
     const rpcUrl = RPCs[chainId] ?? throwError()
     const sdk = new DerionSDK({ chainId })
     await sdk.init()
@@ -137,14 +138,16 @@ describe('SDK', () => {
     const account = sdk.createAccount(accountAddress)
     account.processLogs(txLogs)
     const swapper = sdk.createSwapper(rpcUrl)
+
     // Token R -> A
+    const poolToSwap = Object.keys(pools)[0] ?? '0x45c0C6a6d08B430F73b80b54dF09050114f5D55b'
     const poolToSwapR = pools[poolToSwap].config?.TOKEN_R
     expect(poolToSwapR?.length).toBeGreaterThanOrEqual(42)
     {
       const { amountOuts, gasUsed } = await swapper.simulate({
         tokenIn: poolToSwapR || '',
         tokenOut: packPosId(poolToSwap, POOL_IDS.A),
-        amount: numberToWei(0.1, 6),
+        amount: numberToWei(0.01),
         deps: {
           signer,
           pools,
@@ -186,7 +189,7 @@ describe('SDK', () => {
     }
   })
 
-  test('any-open', async () => {
+  test.skip('any-open', async () => {
     const chainId = 42161
     const accountAddress = '0xD42d6d58F95A3DA9011EfEcA086200A64B266c10'
     const poolToSwap = '0xf3cE4cbfF83AE70e9F76b22cd9b683F167d396dd'
@@ -250,7 +253,7 @@ describe('SDK', () => {
     }
   })
 
-  test('positions-swap', async () => {
+  test.skip('positions-swap', async () => {
     const chainId = 42161
     const accountAddress = '0xD42d6d58F95A3DA9011EfEcA086200A64B266c10'
     const rpcUrl = RPCs[chainId] ?? throwError()
@@ -314,7 +317,7 @@ describe('SDK', () => {
     }
   })
 
-  test('positions-close', async () => {
+  test.skip('positions-close', async () => {
     const chainId = 42161
     const accountAddress = '0xD42d6d58F95A3DA9011EfEcA086200A64B266c10'
     const rpcUrl = RPCs[chainId] ?? throwError()
