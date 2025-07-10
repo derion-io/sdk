@@ -157,6 +157,30 @@
   {
     "inputs": [
       {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "name": "allowance",
+    "outputs": [
+      {
+        "internalType": "string",
+        "name": "",
+        "type": "string"
+      }
+    ],
+    "stateMutability": "pure",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
         "components": [
           {
             "internalType": "uint256",
@@ -213,109 +237,6 @@
       }
     ],
     "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "components": [
-          {
-            "internalType": "address",
-            "name": "FETCHER",
-            "type": "address"
-          },
-          {
-            "internalType": "bytes32",
-            "name": "ORACLE",
-            "type": "bytes32"
-          },
-          {
-            "internalType": "address",
-            "name": "TOKEN_R",
-            "type": "address"
-          },
-          {
-            "internalType": "uint256",
-            "name": "K",
-            "type": "uint256"
-          },
-          {
-            "internalType": "uint256",
-            "name": "MARK",
-            "type": "uint256"
-          },
-          {
-            "internalType": "uint256",
-            "name": "INTEREST_HL",
-            "type": "uint256"
-          },
-          {
-            "internalType": "uint256",
-            "name": "PREMIUM_HL",
-            "type": "uint256"
-          },
-          {
-            "internalType": "uint256",
-            "name": "MATURITY",
-            "type": "uint256"
-          },
-          {
-            "internalType": "uint256",
-            "name": "MATURITY_VEST",
-            "type": "uint256"
-          },
-          {
-            "internalType": "uint256",
-            "name": "MATURITY_RATE",
-            "type": "uint256"
-          },
-          {
-            "internalType": "uint256",
-            "name": "OPEN_RATE",
-            "type": "uint256"
-          }
-        ],
-        "internalType": "struct Config",
-        "name": "config",
-        "type": "tuple"
-      },
-      {
-        "components": [
-          {
-            "internalType": "uint256",
-            "name": "R",
-            "type": "uint256"
-          },
-          {
-            "internalType": "uint256",
-            "name": "a",
-            "type": "uint256"
-          },
-          {
-            "internalType": "uint256",
-            "name": "b",
-            "type": "uint256"
-          }
-        ],
-        "internalType": "struct State",
-        "name": "state",
-        "type": "tuple"
-      },
-      {
-        "internalType": "address",
-        "name": "factory",
-        "type": "address"
-      }
-    ],
-    "name": "createPool",
-    "outputs": [
-      {
-        "internalType": "address",
-        "name": "pool",
-        "type": "address"
-      }
-    ],
-    "stateMutability": "payable",
     "type": "function"
   },
   {
@@ -382,6 +303,30 @@
       }
     ],
     "stateMutability": "payable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "name": "isApprovedForAll",
+    "outputs": [
+      {
+        "internalType": "string",
+        "name": "",
+        "type": "string"
+      }
+    ],
+    "stateMutability": "pure",
     "type": "function"
   },
   {

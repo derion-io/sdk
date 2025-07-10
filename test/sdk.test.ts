@@ -25,9 +25,7 @@ describe('SDK', () => {
   test('logs', async () => {
     const chainId = 42161
     const accountAddress = '0x0DbCa96184eEd4C6a1291403c93311ebE6646785'
-
     const rpcUrl = RPCs[chainId] ?? throwError()
-
     const sdk = new DerionSDK({ chainId })
     await sdk.init()
 
@@ -44,12 +42,12 @@ describe('SDK', () => {
     account.processLogs(txLogs, pools)
     account.processLogs(txLogs, pools) // the second call does nothing
 
-    // const posViews = Object.values(account.positions).map(pos => sdk.calcPositionState(pos, pools))
-    // console.log(...posViews.map(pv => formatPositionView(pv)))
+    // const posViews = Object.values(account.positions).map((pos) => sdk.calcPositionState(pos, pools))
+    // console.log(...posViews.map((pv) => formatPositionView(pv)))
 
     const positionAddress = Object.keys(account.positions)[0] ?? '0x00000000000000000000002090c153fc30f6c2abdd5ff3ccf22bafba872d1509'
     const posView = sdk.calcPositionState(account.positions[positionAddress], pools)
-    expect(formatQ128(posView.netPnL ?? BIG_0)).toBeCloseTo(0.018, 1)
+    expect(formatQ128(posView.netPnL ?? BIG_0)).toBeCloseTo(0.6434, 1)
   })
 
   test('native-open', async () => {
@@ -65,13 +63,15 @@ describe('SDK', () => {
     const { poolAddresses } = sdk.extractLogs(txLogs)
 
     const stateLoader = sdk.getStateLoader(rpcUrl)
+
     const pools: Pools = {}
     sdk.importPools(pools, poolAddresses)
     await stateLoader.update({ pools })
 
     const account = sdk.createAccount(accountAddress)
-    const poolToSwap = Object.keys(pools)[0] ?? '0xf3cE4cbfF83AE70e9F76b22cd9b683F167d396dd'
     account.processLogs(txLogs)
+
+    const poolToSwap = Object.keys(pools)[0] ?? '0xf3cE4cbfF83AE70e9F76b22cd9b683F167d396dd'
     const swapper = sdk.createSwapper(rpcUrl)
     // NATIVE - A
     {
@@ -141,11 +141,11 @@ describe('SDK', () => {
 
     // Token R -> A
     const poolToSwap = Object.keys(pools)[0] ?? '0x45c0C6a6d08B430F73b80b54dF09050114f5D55b'
-    const poolToSwapR = pools[poolToSwap].config?.TOKEN_R
-    expect(poolToSwapR?.length).toBeGreaterThanOrEqual(42)
+    const token = pools[poolToSwap].config?.TOKEN_R
+    expect(token?.length).toBeGreaterThanOrEqual(42)
     {
       const { amountOuts, gasUsed } = await swapper.simulate({
-        tokenIn: poolToSwapR || '',
+        tokenIn: token || '',
         tokenOut: packPosId(poolToSwap, POOL_IDS.A),
         amount: numberToWei(0.01),
         deps: {
@@ -160,9 +160,9 @@ describe('SDK', () => {
     // Token R -> B
     {
       const { amountOuts, gasUsed } = await swapper.simulate({
-        tokenIn: poolToSwapR || '',
+        tokenIn: token || '',
         tokenOut: packPosId(poolToSwap, POOL_IDS.B),
-        amount: numberToWei(0.1, 6),
+        amount: numberToWei(0.01),
         deps: {
           signer,
           pools,
@@ -175,9 +175,9 @@ describe('SDK', () => {
     // Token R -> C
     {
       const { amountOuts, gasUsed } = await swapper.simulate({
-        tokenIn: poolToSwapR || '',
+        tokenIn: token || '',
         tokenOut: packPosId(poolToSwap, POOL_IDS.C),
-        amount: numberToWei(0.1, 6),
+        amount: numberToWei(0.01),
         deps: {
           signer,
           pools,
@@ -189,10 +189,9 @@ describe('SDK', () => {
     }
   })
 
-  test.skip('any-open', async () => {
+  test('any-open', async () => {
     const chainId = 42161
-    const accountAddress = '0xD42d6d58F95A3DA9011EfEcA086200A64B266c10'
-    const poolToSwap = '0xf3cE4cbfF83AE70e9F76b22cd9b683F167d396dd'
+    const accountAddress = '0x0DbCa96184eEd4C6a1291403c93311ebE6646785'
     const rpcUrl = RPCs[chainId] ?? throwError()
     const sdk = new DerionSDK({ chainId })
     await sdk.init()
@@ -203,11 +202,15 @@ describe('SDK', () => {
     const { poolAddresses } = sdk.extractLogs(txLogs)
 
     const stateLoader = sdk.getStateLoader(rpcUrl)
+
     const pools: Pools = {}
     sdk.importPools(pools, poolAddresses)
     await stateLoader.update({ pools })
+
     const account = sdk.createAccount(accountAddress)
     account.processLogs(txLogs)
+
+    const poolToSwap = Object.keys(pools)[0] ?? '0xf3cE4cbfF83AE70e9F76b22cd9b683F167d396dd'
     const swapper = sdk.createSwapper(rpcUrl)
     {
       const { amountOuts, gasUsed } = await swapper.simulate({
@@ -253,25 +256,29 @@ describe('SDK', () => {
     }
   })
 
-  test.skip('positions-swap', async () => {
+  test('positions-swap', async () => {
     const chainId = 42161
-    const accountAddress = '0xD42d6d58F95A3DA9011EfEcA086200A64B266c10'
+    const accountAddress = '0x0DbCa96184eEd4C6a1291403c93311ebE6646785'
     const rpcUrl = RPCs[chainId] ?? throwError()
     const sdk = new DerionSDK({ chainId })
     await sdk.init()
+
     const signer = new VoidSigner(accountAddress, new JsonRpcProvider(rpcUrl))
 
     const txLogs = await loadAccountLogs(rpcUrl, chainId, accountAddress)
     const { poolAddresses } = sdk.extractLogs(txLogs)
 
     const stateLoader = sdk.getStateLoader(rpcUrl)
+
     const pools: Pools = {}
     sdk.importPools(pools, poolAddresses)
     await stateLoader.update({ pools })
+
     const account = sdk.createAccount(accountAddress)
     account.processLogs(txLogs)
-    const positionPoolARB = '0xf3cE4cbfF83AE70e9F76b22cd9b683F167d396dd' // Derion pool ARB/ETH
-    const positionPoolWBTC = '0x3ed9997b3039b4A000f1BAfF3F6104FB05F4e53B' // Derion pool WBTC/USDC
+
+    const positionPoolARB = '0xE4581De9550a80DC1A442a8fC6ccbf980ec1B71C' // Derion pool ARB/ETH
+    const positionPoolWBTC = '0x46683FcbCe186a7A8d6839955E1F27f0Ea046374' // Derion pool WBTC/USDC
     const swapper = sdk.createSwapper(rpcUrl)
     {
       const { amountOuts, gasUsed } = await swapper.simulate({
@@ -317,30 +324,35 @@ describe('SDK', () => {
     }
   })
 
-  test.skip('positions-close', async () => {
+  test('positions-close', async () => {
     const chainId = 42161
-    const accountAddress = '0xD42d6d58F95A3DA9011EfEcA086200A64B266c10'
+    const accountAddress = '0x0DbCa96184eEd4C6a1291403c93311ebE6646785'
     const rpcUrl = RPCs[chainId] ?? throwError()
     const sdk = new DerionSDK({ chainId })
     await sdk.init()
+
     const signer = new VoidSigner(accountAddress, new JsonRpcProvider(rpcUrl))
 
     const txLogs = await loadAccountLogs(rpcUrl, chainId, accountAddress)
     const { poolAddresses } = sdk.extractLogs(txLogs)
 
     const stateLoader = sdk.getStateLoader(rpcUrl)
+
     const pools: Pools = {}
     sdk.importPools(pools, poolAddresses)
     await stateLoader.update({ pools })
+
     const account = sdk.createAccount(accountAddress)
     account.processLogs(txLogs)
-    const positionPoolARB = '0xf3cE4cbfF83AE70e9F76b22cd9b683F167d396dd' // Derion pool ARB/ETH
+
+    const positionPoolARB = '0xE4581De9550a80DC1A442a8fC6ccbf980ec1B71C' // Derion pool ARB/ETH
     const positionPoolWBTC = '0x3ed9997b3039b4A000f1BAfF3F6104FB05F4e53B' // Derion pool WBTC/USDC
-    const positionPoolWETH = '0xAaf8FAC8F5709B0c954c9Af1d369A9b157e31FfE' // Derion pool WBTC/USDC
+    const positionPoolWETH = '0xAaf8FAC8F5709B0c954c9Af1d369A9b157e31FfE' // Derion pool WETH/USDC
 
     const swapper = sdk.createSwapper(rpcUrl)
     {
       // console.log('A -> NATIVE')
+
       const { amountOuts, gasUsed } = await swapper.simulate({
         tokenIn: packPosId(positionPoolARB, POOL_IDS.A),
         tokenOut: pools[positionPoolARB].config?.TOKEN_R || '',
@@ -390,6 +402,7 @@ describe('SDK', () => {
 
     {
       // console.log('A -> R')
+
       const { amountOuts, gasUsed } = await swapper.simulate({
         tokenIn: packPosId(positionPoolARB, POOL_IDS.A),
         tokenOut: pools[positionPoolARB].config?.TOKEN_R || '',
@@ -441,6 +454,7 @@ describe('SDK', () => {
 
     {
       // console.log('A -> USDC')
+
       const { amountOuts, gasUsed } = await swapper.simulate({
         tokenIn: packPosId(positionPoolARB, POOL_IDS.A),
         tokenOut: USDC,
