@@ -13,7 +13,7 @@
   "author": "Derion Labs",
   "license": "MIT",
   "dependencies": {
-    "@ethersproject/providers": "https://gitpkg.now.sh/derion-io/ethers.js/packages/providers?v5.3.5.0",
+    "@ethersproject/providers": "lib/ethers.js/packages/providers",
     "@zoltu/ethereum-crypto": "^2.3.0",
     "@zoltu/ethereum-fetch-json-rpc": "^13.1.4",
     "@zoltu/ethereum-types": "^9.0.4",

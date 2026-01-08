@@ -2,6 +2,19 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Setup
+
+```bash
+# Clone with submodules
+git clone --recurse-submodules <repo-url>
+
+# Or initialize submodules after clone
+git submodule update --init --recursive
+```
+
+Submodules:
+- `lib/ethers.js` - Custom ethers.js fork (provides `@ethersproject/providers` with state override support)
+
 ## Build and Test Commands
 
 ```bash
