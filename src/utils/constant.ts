@@ -39,9 +39,6 @@ export const EventDataAbis = {
     'uint MARK', // config.MARK,
     'uint INTEREST_HL', // config.INTEREST_HL,
     'uint PREMIUM_HL', // config.PREMIUM_HL,
-    'uint MATURITY', // config.MATURITY,
-    'uint MATURITY_VEST', // config.MATURITY_VEST,
-    'uint MATURITY_RATE', // config.MATURITY_RATE,
     'uint OPEN_RATE', // config.OPEN_RATE,
     'address poolAddress', // uint(uint160(pool))
   ],

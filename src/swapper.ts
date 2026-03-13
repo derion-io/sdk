@@ -309,7 +309,6 @@ export class Swapper {
           sideOut: sideOut,
           poolOut: isPosId(step.tokenOut) ? poolOut : poolIn,
           amountIn,
-          maturity: 0,
           payer: account,
           recipient: account,
           INDEX_R: indexR ?? this.getIndexR(TOKEN_R),

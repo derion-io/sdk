@@ -85,10 +85,8 @@ export type Pool = {
     MARK: BigNumber
     INTEREST_HL: number
     PREMIUM_HL: number
-    MATURITY: number
-    MATURITY_VEST: number
-    MATURITY_RATE: BigNumber
     OPEN_RATE: BigNumber
+    R_DT: number
   }
   metadata?: {
     reserve: {
@@ -134,7 +132,6 @@ export type Position = {
   priceR: BigNumber
   price: BigNumber
   rPerBalance: BigNumber
-  maturity: number
 }
 
 export type Transition = {
@@ -145,5 +142,4 @@ export type Transition = {
   price?: BigNumber
   priceR?: BigNumber
   rPerAmount?: BigNumber
-  maturity?: number
 }

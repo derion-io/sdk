@@ -6,7 +6,7 @@ import { BIG_0 } from './constant'
 export const STABLE_SYMBOLS = ['USD', 'DAI']
 
 export const TOPICS: { [topic0: string]: string } = {
-  '0xba5c330f8eb505cee9b4eb08fecf34234a327cfb6f9e480f9d3b4dfae5b23e4d': 'Position', // Derion Pool
+  '0xad05b4d6e93e902856d1a65a7cb9b0d22f5a8e0bf540c2006e88f586ac265cf1': 'Position', // Derion Pool
   '0xf7462f2a86b97b14a4669ae97bf107eb47f1574e511038ba3bb2c0cace5bb227': 'Swap', // Derion Helper
   '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef': 'Transfer', // 20, 721
   '0xc3d58168c5ae7397731d063d5bbf3d657854427343f4c083240f7aacaa2d0f62': 'TransferSingle', // 1155
@@ -120,15 +120,13 @@ export function processLogs(
             // const payer = getAddress(hexDataSlice(log.topics[1], 12))
             // const recipient = getAddress(hexDataSlice(log.topics[2], 12))
             // const index = getAddress(hexDataSlice(log.topics[3], 12))
-            const [posId, amount, maturity, sqrtPrice, valueR] = defaultAbiCoder.decode(
-              ['bytes32', 'uint', 'uint', 'uint', 'uint'],
+            const [posId, amount, sqrtPrice, valueR] = defaultAbiCoder.decode(
+              ['bytes32', 'uint', 'uint', 'uint'],
               log.data,
             )
             if (posId != id) {
               return false
             }
-            transition.maturity = maturity.toNumber()
-            pos.maturity = maturity.toNumber()
             const newBalance = pos.balance.add(amount)
             if (sqrtPrice.gt(0)) {
               const price = sqrtPrice.mul(sqrtPrice).shr(128)

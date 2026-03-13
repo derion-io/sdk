@@ -128,7 +128,7 @@ export function calcPoolSide(pool: Pool, side: number): any {
 }
 
 export function calcPositionState(position: Position, pools: Pools, currentPriceR?: BigNumber, balance = position.balance): PositionView {
-  const { id, price, priceR, rPerBalance, maturity } = position
+  const { id, price, priceR, rPerBalance } = position
   const poolAddress = getAddress(hexDataSlice(id, 12))
   const side = BigNumber.from(hexDataSlice(id, 0, 12)).toNumber()
   // check for position with entry

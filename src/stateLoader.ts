@@ -62,7 +62,7 @@ export class StateLoader {
               if (ret.reference == 'metadata') {
                 const [config, reserve, base, quote] = ret.returnValues
                 if (!config) continue
-                const [FETCHER, ORACLE, TOKEN_R, K, MARK, INTEREST_HL, PREMIUM_HL, MATURITY, MATURITY_VEST, MATURITY_RATE, OPEN_RATE] =
+                const [FETCHER, ORACLE, TOKEN_R, K, MARK, INTEREST_HL, PREMIUM_HL, OPEN_RATE, R_DT] =
                   config.map((v: any) => (v.type == 'BigNumber' ? BigNumber.from(v.hex) : v))
                 pool.config = {
                   FETCHER,
@@ -72,10 +72,8 @@ export class StateLoader {
                   MARK,
                   INTEREST_HL: INTEREST_HL.toNumber(),
                   PREMIUM_HL: PREMIUM_HL.toNumber(),
-                  MATURITY: MATURITY.toNumber(),
-                  MATURITY_VEST: MATURITY_VEST.toNumber(),
-                  MATURITY_RATE,
                   OPEN_RATE,
+                  R_DT: R_DT.toNumber(),
                 }
                 pool.metadata = {
                   reserve: {

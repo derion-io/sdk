@@ -70,12 +70,6 @@
         {
           "indexed": false,
           "internalType": "uint256",
-          "name": "maturity",
-          "type": "uint256"
-        },
-        {
-          "indexed": false,
-          "internalType": "uint256",
           "name": "price",
           "type": "uint256"
         },
@@ -394,22 +388,12 @@
             },
             {
               "internalType": "uint256",
-              "name": "MATURITY",
-              "type": "uint256"
-            },
-            {
-              "internalType": "uint256",
-              "name": "MATURITY_VEST",
-              "type": "uint256"
-            },
-            {
-              "internalType": "uint256",
-              "name": "MATURITY_RATE",
-              "type": "uint256"
-            },
-            {
-              "internalType": "uint256",
               "name": "OPEN_RATE",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "R_DT",
               "type": "uint256"
             }
           ],
@@ -466,22 +450,12 @@
                 },
                 {
                   "internalType": "uint256",
-                  "name": "MATURITY",
-                  "type": "uint256"
-                },
-                {
-                  "internalType": "uint256",
-                  "name": "MATURITY_VEST",
-                  "type": "uint256"
-                },
-                {
-                  "internalType": "uint256",
-                  "name": "MATURITY_RATE",
-                  "type": "uint256"
-                },
-                {
-                  "internalType": "uint256",
                   "name": "OPEN_RATE",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "R_DT",
                   "type": "uint256"
                 }
               ],
