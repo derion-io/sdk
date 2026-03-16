@@ -1,6 +1,8 @@
 # Derion SDK
 
-TypeScript SDK for interacting with the Derion protocol — leveraged perpetual positions on EVM chains.
+TypeScript SDK for the Derion protocol — leveraged perpetual positions on EVM chains.
+
+Designed for both **1st-party** (protocol frontend/backend) and **3rd-party** (external integrators) use. The SDK handles all calculation and state construction while remaining **stateless** — it holds only chain configuration. All state (pools, positions, balances) is owned and managed by the caller.
 
 ## Setup
 
@@ -18,7 +20,7 @@ npm run build
 npm test
 ```
 
-## Sample Usage
+## Quick Start
 
 ```ts
 import {
@@ -28,39 +30,27 @@ import {
 } from 'derion-sdk'
 import { numberToWei } from 'derion-sdk/dist/utils/helper'
 
+// 1. Initialize (loads chain config)
 const sdk = new DerionSDK({ chainId: 42161 })
 await sdk.init()
 
-// Import pools by address
+// 2. Build pool state (caller owns this data)
 let pools: Pools = {}
 pools = sdk.importPools(pools, ['0xPool1...', '0xPool2...'])
 
-// Or extract pool addresses from transaction logs
-let txLogs: LogType[][] = [] // grouped by transactionHash
-const { poolAddresses } = sdk.extractLogs(txLogs)
-pools = sdk.importPools(pools, poolAddresses)
-
-// Load on-chain pool state
 const stateLoader = sdk.getStateLoader(rpcUrl)
 pools = await stateLoader.update({ pools })
 
-// Create account and process historical logs
+// 3. Build account state from historical logs
 const account = sdk.createAccount(accountAddress)
-// or with a Signer:
-// const account = sdk.createAccount(accountAddress, signer)
 await account.processLogs(txLogs, pools)
-await account.processLogs(txLogs, pools) // second call is a no-op (already processed)
 
-// Transaction history
-const txHistory = account.transitions
-
-// Calculate position views
+// 4. Calculate position views
 const posViews = Object.values(account.positions).map(pos =>
   sdk.calcPositionState(pos, pools)
 )
-console.log(...posViews.map(pv => formatPositionView(pv)))
 
-// Simulate a swap (NATIVE -> Long position)
+// 5. Simulate or execute swaps
 const swapper = sdk.createSwapper(rpcUrl)
 const { amountOuts, gasUsed } = await swapper.simulate({
   tokenIn: NATIVE_ADDRESS,
@@ -68,13 +58,43 @@ const { amountOuts, gasUsed } = await swapper.simulate({
   amount: numberToWei(0.0001, 18),
   deps: { signer, pools },
 })
-console.log('amountOut', amountOuts[amountOuts.length - 1].toString())
+```
 
-// Execute a swap
-const tx = await swapper.swap({
+## Design
+
+### Stateless Architecture
+
+The SDK itself stores no pool state, no positions, no balances. It provides:
+
+- **Configuration** — chain-specific contract addresses, ABIs, routing info (loaded once via `init()`)
+- **Computation** — position PnL, leverage, funding rates, deleverage prices
+- **State construction** — reads on-chain data and structures it into typed objects
+- **Transaction building** — constructs swap/open/close transactions
+
+All mutable state is returned to the caller. Functions like `importPools()` and `stateLoader.update()` return new objects rather than mutating inputs. This makes it safe to use in concurrent or multi-account contexts.
+
+### Integration Patterns
+
+**1st-party** (protocol frontend):
+```ts
+// Full flow: pool discovery, state loading, account tracking, swap execution
+const { poolAddresses } = sdk.extractLogs(txLogs)
+pools = sdk.importPools(pools, poolAddresses)
+pools = await stateLoader.update({ pools })
+const account = sdk.createAccount(address, signer)
+await account.processLogs(txLogs, pools)
+const tx = await swapper.swap({ tokenIn, tokenOut, amount, deps: { signer, pools } })
+```
+
+**3rd-party** (integrators, aggregators, bots):
+```ts
+// Direct: know the pools, load state, simulate
+pools = sdk.importPools({}, [knownPoolAddress])
+pools = await stateLoader.update({ pools })
+const { amountOuts } = await swapper.simulate({
   tokenIn: NATIVE_ADDRESS,
-  tokenOut: packPosId(poolAddress, POOL_IDS.A),
-  amount: numberToWei(0.0001, 18),
+  tokenOut: packPosId(knownPoolAddress, POOL_IDS.A),
+  amount: '1000000000000000',
   deps: { signer, pools },
 })
 ```
@@ -89,22 +109,21 @@ Stateless orchestrator. Holds chain config and creates other components.
 const sdk = new DerionSDK({ chainId: 42161 })
 await sdk.init()
 
-// With custom config fetcher (useful for testing)
+// With custom config fetcher (useful for testing or custom environments)
 await sdk.init(async (url) => myCustomFetch(url))
 ```
 
 ### StateLoader
 
-Fetches on-chain pool state via multicall with state overrides. Injects View contract bytecode to compute pool metrics off-chain.
+Fetches on-chain pool state via multicall with state overrides. Injects View contract bytecode at pool addresses to compute metrics off-chain in a single `eth_call`.
 
 ```ts
-// From URL
 const stateLoader = sdk.getStateLoader(rpcUrl)
-
-// Or inject a provider
+// or inject a provider directly
 const stateLoader = sdk.getStateLoader(myProvider)
 
-await stateLoader.update({ pools })
+// Returns new Pools object with state populated (does not mutate input)
+pools = await stateLoader.update({ pools })
 ```
 
 ### Pool
@@ -117,18 +136,19 @@ Pools are identified by their contract address. A Pool contains:
 - `view` — computed values (supplies sA/sB/sC, reserves rA/rB/rC, twap, spot)
 
 ```ts
+// importPools returns a new Pools object (does not mutate input)
 let pools: Pools = {}
 pools = sdk.importPools(pools, [address1, address2])
-pools = await stateLoader.update({ pools }) // loads config, metadata, state, and view
+pools = await stateLoader.update({ pools })
 ```
 
 ### Account
 
-Tracks an account's positions, transitions, balances, and allowances by processing transaction logs.
+Tracks an account's positions, transitions, balances, and allowances by processing transaction logs. The Account is the one stateful object — it accumulates state across `processLogs` calls.
 
 ```ts
 const account = sdk.createAccount(address)
-// or with a signer (for executing transactions later)
+// or with a signer for transaction execution
 const account = sdk.createAccount(address, signer)
 
 // Process logs incrementally — already-processed logs are skipped
@@ -140,6 +160,8 @@ account.balances     // { [token]: BigNumber }
 account.allowances   // { [spenderToken]: BigNumber }
 ```
 
+Logs can come from any source — Etherscan API, in-house indexer, or direct RPC `eth_getLogs`. The SDK doesn't fetch logs itself; the caller provides them.
+
 ### Swapper
 
 Handles swap simulation and execution via the Universal Transaction Router (UTR). Supports native tokens, ERC20s, and position tokens. Integrates with Paraswap for arbitrary token routes.
@@ -147,6 +169,7 @@ Handles swap simulation and execution via the Universal Transaction Router (UTR)
 ```ts
 const swapper = sdk.createSwapper(rpcUrl)
 
+// Simulate (no transaction sent, uses callStatic with state override)
 const { amountOuts, gasUsed } = await swapper.simulate({
   tokenIn,    // address, NATIVE_ADDRESS, or positionId
   tokenOut,   // address, NATIVE_ADDRESS, or positionId
@@ -154,6 +177,7 @@ const { amountOuts, gasUsed } = await swapper.simulate({
   deps: { signer, pools },
 })
 
+// Execute (sends transaction)
 const tx = await swapper.swap({ tokenIn, tokenOut, amount, deps: { signer, pools } })
 ```
 
@@ -181,7 +205,7 @@ isPosId(posId) // true
 
 ## Position Historical Data
 
-Position entry data and transitions require event logs to construct. These logs can be obtained from 3rd-party indexers (e.g. Etherscan) or in-house indexing services. Without logs, only the current state of a position is available — not entry or transition data.
+Position entry data and transitions require event logs to construct. These logs can be obtained from any indexing source — Etherscan, The Graph, or direct RPC calls. Without logs, only the current on-chain state of a position is available (via StateLoader), not entry prices or transition history.
 
 ```ts
 await account.processLogs(txLogs, pools)
