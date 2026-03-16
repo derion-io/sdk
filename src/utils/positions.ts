@@ -1,6 +1,7 @@
 import { getAddress, hexDataSlice } from 'ethers/lib/utils'
 import { BigNumber } from 'ethers'
-import { formatPercentage, formatQ128, IEW, kx, NUM, powX128, rateFromHL, SHL, thousandsInt, WEI, xr } from './helper'
+import { IEW, kx, NUM, rateFromHL, SHL, WEI } from './helper'
+import { formatPercentage, formatQ128, thousandsInt, xr, powX128 } from '.'
 import { BIG_E18, POOL_IDS } from './constant'
 import { Position, Pool, Pools } from '../type'
 

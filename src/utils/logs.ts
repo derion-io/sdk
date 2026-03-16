@@ -1,6 +1,6 @@
 import { BigNumber } from 'ethers'
 import { defaultAbiCoder, getAddress, hexDataSlice } from 'ethers/lib/utils'
-import { Position, LogType, Transition, Pools } from '../type'
+import { AccountState, Position, LogType, Transition, Pools } from '../type'
 import { BIG_0 } from './constant'
 
 export const STABLE_SYMBOLS = ['USD', 'DAI']
@@ -41,15 +41,21 @@ export function extractPoolAddresses(txLogs: LogType[][], tokenDerion: string): 
 }
 
 export function processLogs(
-  positions: { [id: string]: Position },
-  transitions: Transition[],
-  balances: { [token: string]: BigNumber },
-  allowances: { [spenderToken: string]: BigNumber },
+  state: AccountState,
   txLogs: LogType[][],
   pools: Pools,
   tokenDerion: string,
   account: string,
-) {
+): AccountState {
+  // Clone state for immutable return
+  const positions: { [id: string]: Position } = {}
+  for (const [id, pos] of Object.entries(state.positions)) {
+    positions[id] = { ...pos }
+  }
+  const transitions = [...state.transitions]
+  const balances = { ...state.balances }
+  const allowances = { ...state.allowances }
+
   for (const logs of txLogs) {
     if (!logs.length) {
       continue
@@ -241,4 +247,6 @@ export function processLogs(
       }
     }
   }
+
+  return { positions, transitions, balances, allowances }
 }

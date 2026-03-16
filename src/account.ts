@@ -1,12 +1,10 @@
-import { BigNumber, Signer } from 'ethers'
-import { Profile } from './profile'
+import { BigNumber } from 'ethers'
 import { processLogs } from './utils/logs'
-import { Position, LogType, Transition, Pools } from './type'
+import { AccountState, Position, LogType, Transition, Pools } from './type'
 
 export class Account {
-  profile: Profile
+  tokenDerion: string
   address: string
-  signer?: Signer
   blockNumber: number = 0
   logIndex: number = 0
   positions: { [id: string]: Position } = {}
@@ -14,10 +12,18 @@ export class Account {
   balances: { [token: string]: BigNumber } = {}
   allowances: { [spenderToken: string]: BigNumber } = {}
 
-  constructor(profile: Profile, address: string, signer?: Signer) {
-    this.profile = profile
+  constructor(tokenDerion: string, address: string) {
+    this.tokenDerion = tokenDerion
     this.address = address
-    this.signer = signer
+  }
+
+  getState(): AccountState {
+    return {
+      positions: this.positions,
+      transitions: this.transitions,
+      balances: this.balances,
+      allowances: this.allowances,
+    }
   }
 
   processLogs = async (txLogs: LogType[][], pools: Pools = {}) => {
@@ -28,16 +34,18 @@ export class Account {
       return
     }
 
-    processLogs(
-      this.positions,
-      this.transitions,
-      this.balances,
-      this.allowances,
+    const result = processLogs(
+      this.getState(),
       txLogs,
       pools,
-      this.profile.configs.derivable.token,
+      this.tokenDerion,
       this.address,
     )
+    this.positions = result.positions
+    this.transitions = result.transitions
+    this.balances = result.balances
+    this.allowances = result.allowances
+
     const lastTx = txLogs[txLogs.length - 1]
     const lastLog = lastTx[lastTx.length - 1]
     this.blockNumber = lastLog.blockNumber

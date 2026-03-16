@@ -1,10 +1,9 @@
 import { BigNumber } from 'ethers'
 import { bn } from '.'
-import { BIG_0, M256, Q128, SECONDS_PER_DAY } from './constant'
+import { BIG_0, SECONDS_PER_DAY } from './constant'
 import { LogType } from '../type'
 
-// TODO: Change name a some function
-// TODO: Convert require to import
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 const mdp = require('move-decimal-point')
 
 export const weiToNumber = (wei: any, decimals: number = 18, decimalToDisplay?: number): string => {
@@ -22,11 +21,10 @@ export const weiToNumber = (wei: any, decimals: number = 18, decimalToDisplay?: 
 
 export const numberToWei = (number: any, decimals: number = 18): string => {
   if (!number) return '0'
-  number = number.toString()
-  if (Number.isFinite(number)) {
-    number = number.toLocaleString('en-US', { useGrouping: false })
-  }
-  return mdp(number, decimals).split(number.indexOf('.') === -1 ? ',' : '.')[0]
+  const str = typeof number === 'number'
+    ? number.toLocaleString('en-US', { useGrouping: false })
+    : String(number)
+  return mdp(str, decimals).split('.')[0] || '0'
 }
 
 export const decodePowers = (powersBytes: string): Array<number> => {
@@ -353,46 +351,4 @@ export function mergeTwoUniqSortedLogs(a: LogType[], b: LogType[]): LogType[] {
   return r
 }
 
-export function formatQ128(n: BigNumber, PRECISION = 10000): number {
-  if (n.isNegative()) {
-    return -formatQ128(bn(0).sub(n))
-  }
-  return n.mul(PRECISION).shr(128).toNumber() / PRECISION
-}
-
-export function formatPercentage(n: number, precision = 2): string {
-  return (n * 100).toFixed(precision) + '%'
-}
-
-export const thousandsInt = (int: string, count = 3): string => {
-  const regExp = new RegExp(String.raw`(\d+)(\d{${count}})`)
-  while (regExp.test(int)) {
-    int = int.replace(regExp, '$1' + ',' + '$2')
-  }
-  return int
-}
-
-export function xr(k: number, r: BigNumber, v: BigNumber): number {
-  try {
-    const x = NUM(DIV(r, v))
-    return Math.pow(x, 1 / k)
-  } catch (err) {
-    console.warn(err)
-    return 0
-  }
-}
-
-export const powX128 = (x: BigNumber, k: number): BigNumber => {
-  let y = Q128
-  const neg = k < 0
-  if (neg) {
-    k = -k
-  }
-  for (let i = 0; i < k; ++i) {
-    y = y.mul(x).shr(128)
-  }
-  if (neg) {
-    return M256.div(y)
-  }
-  return y
-}
+// formatQ128, formatPercentage, thousandsInt, xr, powX128 are canonical in utils/index.ts

@@ -1,18 +1,16 @@
-import { JsonRpcProvider, Networkish, TransactionReceipt } from '@ethersproject/providers'
+import { JsonRpcProvider, TransactionReceipt } from '@ethersproject/providers'
 import { BigNumber, Contract, ethers, Signer, utils, VoidSigner } from 'ethers'
-import { ConnectionInfo, isAddress } from 'ethers/lib/utils'
+import { isAddress } from 'ethers/lib/utils'
 import { Profile } from './profile'
 import { NATIVE_ADDRESS, POOL_IDS, Q128 } from './utils/constant'
+import { ParaswapClient } from './paraswap'
 
 import { addressFromToken, sideFromToken, isPosId, packPosId, throwError, unpackPosId, bn } from './utils'
-import { ProfileConfigs, Pools } from './type'
+import { DerionError, Pools } from './type'
 const { AddressZero } = ethers.constants
 const PAYMENT = 0
 const TRANSFER = 1
 const CALL_VALUE = 2
-const PARA_DATA_BASE_URL = 'https://api.paraswap.io/prices'
-const PARA_VERSION = '5'
-const PARA_BUILD_TX_BASE_URL = 'https://api.paraswap.io/transactions'
 
 export type rateDataAggregatorType = {
   userAddress: string
@@ -93,39 +91,37 @@ export type PendingSwapTransactionType = {
 }
 
 export class Swapper {
-  configs: ProfileConfigs
   profile: Profile
   provider: JsonRpcProvider
   overrideProvider: JsonRpcProvider
   helperContract: Contract
-  paraDataBaseURL: string
-  paraBuildTxBaseURL: string
-  paraDataBaseVersion: string
-  constructor(configs: ProfileConfigs, profile: Profile, url?: ConnectionInfo | string, network?: Networkish) {
+  paraswap: ParaswapClient
+
+  constructor(
+    profile: Profile,
+    provider: JsonRpcProvider,
+    overrideProvider?: JsonRpcProvider,
+    paraswap?: ParaswapClient,
+  ) {
     this.profile = profile
-    this.configs = configs
-    this.provider = new JsonRpcProvider(url, network)
-    this.overrideProvider = new JsonRpcProvider(url, network)
-    this.overridedProvider()
+    this.provider = provider
+    this.overrideProvider = overrideProvider ?? new JsonRpcProvider(provider.connection, provider.network)
+    this.setupOverride()
     this.helperContract = new Contract(
       this.profile.configs.derivable.stateCalHelper as string,
       this.profile.getAbi('Helper'),
       this.provider,
     )
-    this.paraDataBaseURL = PARA_DATA_BASE_URL
-    this.paraBuildTxBaseURL = PARA_BUILD_TX_BASE_URL
-    this.paraDataBaseVersion = PARA_VERSION
+    this.paraswap = paraswap ?? new ParaswapClient(profile.chainId)
   }
 
-  overridedProvider(): JsonRpcProvider {
+  private setupOverride(): void {
     const utr = this.profile.configs.helperContract.utr
     this.overrideProvider.setStateOverride({
       [utr]: {
         code: this.profile.getAbi('UTROverride').deployedBytecode,
       },
     })
-
-    return this.overrideProvider
   }
 
   wrapToken(address: string): string {
@@ -198,8 +194,7 @@ export class Swapper {
       return r === `${tokenR}-${tokenIn}` || r === `${tokenIn}-${tokenR}`
     })
     if (!this.profile.routes[routeKey || ''] || !this.profile.routes[routeKey || ''][0].address) {
-      console.error("Can't find router, please select other token")
-      throw "Can't find router, please select other token"
+      throw new DerionError("Can't find router, please select other token", 'ROUTE_NOT_FOUND')
     }
     return this.profile.routes[routeKey || ''][0].address
   }
@@ -236,8 +231,7 @@ export class Swapper {
               recipient:
                 isAddress(step.tokenIn) && this.wrapToken(step.tokenIn) !== TOKEN_R
                   ? this.helperContract.address
-                  : // this.getUniPool(step.tokenIn, poolGroup.TOKEN_R)
-                  isPosId(step.tokenIn)
+                  : isPosId(step.tokenIn)
                   ? poolIn
                   : poolOut,
             },
@@ -249,7 +243,6 @@ export class Swapper {
     const account = await signer.getAddress()
 
     if (needAggregator) {
-      // TODO: handle payloadAmountIn or inputTolerance for aggreateAndOpen
       const getRateData = {
         userAddress: this.helperContract.address,
         ignoreChecks: true,
@@ -261,28 +254,12 @@ export class Swapper {
         partner: 'derion.io',
         side: 'SELL',
       }
-      // console.log(getRateData)
       const openData = {
         pool: poolOut,
         side: sideOut,
       }
-      // const helper = new Contract(this.helperContract.address as string, this.profile.getAbi('Helper'), this.provider)
-      const { openTx, swapData, rateData } = await this.getAggRateAndBuildTxSwapApi(getRateData, openData, signer)
-      // console.log(openTx)
+      const { openTx } = await this.getAggRateAndBuildTxSwapApi(getRateData, openData, signer)
       populateTxData.push(openTx)
-
-      // populateTxData.push(
-      //   this.generateSwapParams('swapAndOpen', {
-      //     side: idOut,
-      //     deriPool: poolOut,
-      //     uniPool: this.getUniPool(step.tokenIn, poolGroup.TOKEN_R),
-      //     token: step.tokenIn,
-      //     amount: amountIn,
-      //     payer: this.account,
-      //     recipient: this.account,
-      //     INDEX_R: this.RESOURCE.getIndexR(poolGroup.TOKEN_R),
-      //   }),
-      // )
     } else if (isAddress(step.tokenOut) && this.wrapToken(step.tokenOut) !== TOKEN_R) {
       populateTxData.push(
         this.generateSwapParams('closeAndSwap', {
@@ -369,9 +346,6 @@ export class Swapper {
     params: any
     value: BigNumber
   }> {
-    // @ts-ignore
-    // const stateCalHelper = this.getStateCalHelperContract()
-
     const outputs: {
       eip: number
       token: string
@@ -440,7 +414,6 @@ export class Swapper {
 
         promises.push(...populateTxData)
       } else {
-        // console.log('SwapCall')
         const { inputs, populateTxData } = await this.getSwapCallData({
           step,
           TOKEN_R,
@@ -480,13 +453,13 @@ export class Swapper {
     openTx: any
   }> {
     const address = await signer.getAddress()
-    const rateData = await this.getAggRate(getRateData, signer)
+    const rateData = await this.paraswap.getRate(getRateData, getRateData.userAddress)
     if (rateData.error) {
-      throw new Error(rateData.error)
+      throw new DerionError(rateData.error, 'PARASWAP_RATE_ERROR')
     }
-    const swapData = await this.buildAggTx(getRateData, rateData, slippage)
+    const swapData = await this.paraswap.buildTx(getRateData, rateData, slippage)
     if (swapData.error) {
-      throw new Error(swapData.error)
+      throw new DerionError(swapData.error, 'PARASWAP_BUILD_TX_ERROR')
     }
     const helper = helperOverride ?? this.helperContract
     const openTx = await helper.populateTransaction.aggregateAndOpen({
@@ -505,50 +478,6 @@ export class Swapper {
       swapData,
       openTx,
     }
-  }
-
-  async getAggRate(getRateData: rateDataAggregatorType, signer: Signer) {
-    const address = await signer.getAddress()
-    const amount = getRateData?.srcAmount || getRateData.destAmount
-    const rateData = await (
-      await fetch(
-        `${this.paraDataBaseURL}/?version=${this.paraDataBaseVersion}&srcToken=${getRateData.srcToken}&srcDecimals=${
-          getRateData?.srcDecimals || 18
-        }&destToken=${getRateData.destToken}&destDecimals=${getRateData?.destDecimals || 18}&amount=${amount}&side=${
-          getRateData.side
-        }&excludeDirectContractMethods=${getRateData.excludeDirectContractMethods || false}&otherExchangePrices=${
-          getRateData.otherExchangePrices || true
-        }&partner=${getRateData.partner}&network=${this.profile.chainId}&userAddress=${address}`,
-        {
-          method: 'GET',
-          redirect: 'follow',
-        },
-      )
-    ).json()
-    return rateData
-  }
-
-  async buildAggTx(getRateData: rateDataAggregatorType, rateData: any, slippage?: number) {
-    const myHeaders: any = new Headers()
-    myHeaders.append('Content-Type', 'application/json')
-    const swapData = await (
-      await fetch(
-        `${this.paraBuildTxBaseURL}/${this.profile.chainId}?ignoreGasEstimate=${getRateData.ignoreGasEstimate || true}&ignoreAllowance=${
-          getRateData.ignoreAllowance || true
-        }&gasPrice=${rateData.priceRoute.gasCost}`,
-        {
-          method: 'POST',
-          headers: myHeaders,
-          body: JSON.stringify({
-            ...getRateData,
-            slippage: slippage || 500, // 5%
-            partner: getRateData.partner,
-            priceRoute: rateData.priceRoute,
-          }),
-        },
-      )
-    ).json()
-    return swapData
   }
 
   async multiSwap({
@@ -582,7 +511,6 @@ export class Swapper {
       onSubmitted({ hash: res.hash, steps })
     }
     const tx = await res.wait(1)
-    console.log('tx', tx)
     return tx
   }
 

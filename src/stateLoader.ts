@@ -1,6 +1,5 @@
-import { JsonRpcProvider, Networkish } from '@ethersproject/providers'
+import { JsonRpcProvider } from '@ethersproject/providers'
 import { CallReturnContext, ContractCallContext, Multicall } from 'ethereum-multicall'
-import { ConnectionInfo } from 'ethers/lib/utils'
 import { Profile } from './profile'
 import { BigNumber } from 'ethers'
 import { Pools } from './type'
@@ -10,9 +9,9 @@ export class StateLoader {
   provider: JsonRpcProvider
   mc: Multicall
 
-  constructor(profile: Profile, url?: ConnectionInfo | string, network?: Networkish) {
+  constructor(profile: Profile, provider: JsonRpcProvider) {
     this.profile = profile
-    this.provider = new JsonRpcProvider(url, network)
+    this.provider = provider
     this.mc = new Multicall({ ethersProvider: this.provider, tryAggregate: true })
   }
 
@@ -105,7 +104,7 @@ export class StateLoader {
     const callbacks: { [reference: string]: any } = {}
     for (const context of contexts) {
       if (callbacks[context.reference]) {
-        throw new Error(`dupplicated reference: ${context.reference}`)
+        throw new Error(`duplicated reference: ${context.reference}`)
       }
       callbacks[context.reference] = context.context
       delete context.context

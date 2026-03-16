@@ -1,5 +1,16 @@
 import { BigNumber } from 'ethers'
 
+export class DerionError extends Error {
+  code?: string
+  constructor(message: string, code?: string) {
+    super(message)
+    this.name = 'DerionError'
+    this.code = code
+  }
+}
+
+export type ConfigFetcher = (url: string) => Promise<any>
+
 export interface ProfileConfigs {
   env?: 'development' | 'production'
   chainId: number
@@ -132,6 +143,13 @@ export type Position = {
   priceR: BigNumber
   price: BigNumber
   rPerBalance: BigNumber
+}
+
+export type AccountState = {
+  positions: { [id: string]: Position }
+  transitions: Transition[]
+  balances: { [token: string]: BigNumber }
+  allowances: { [spenderToken: string]: BigNumber }
 }
 
 export type Transition = {

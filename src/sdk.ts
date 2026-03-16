@@ -1,28 +1,30 @@
-import { Signer } from 'ethers'
+import { JsonRpcProvider, Networkish } from '@ethersproject/providers'
+import { ConnectionInfo } from 'ethers/lib/utils'
 import { Profile } from './profile'
 import { Account } from './account'
 import { StateLoader } from './stateLoader'
-import { Networkish } from '@ethersproject/providers'
-import { ConnectionInfo } from 'ethers/lib/utils'
 import { extractPoolAddresses } from './utils/logs'
 import { Swapper } from './swapper'
 import { calcPositionState, PositionView } from './utils/positions'
-import { Position, LogType, ProfileConfigs, Pools } from './type'
+import { ConfigFetcher, Position, LogType, ProfileConfigs, Pools } from './type'
 
 export class DerionSDK {
+  profile: Profile
+  stateLoader: StateLoader
+
   constructor(configs: ProfileConfigs) {
     this.profile = new Profile(configs)
   }
 
-  profile: Profile
-  stateLoader: StateLoader
-
-  async init() {
-    await this.profile.loadConfig()
+  async init(fetcher?: ConfigFetcher) {
+    await this.profile.loadConfig(fetcher)
   }
 
-  getStateLoader(url?: ConnectionInfo | string, network?: Networkish) {
-    return (this.stateLoader = this.stateLoader ?? new StateLoader(this.profile, url, network))
+  getStateLoader(providerOrUrl?: JsonRpcProvider | ConnectionInfo | string, network?: Networkish) {
+    const provider = providerOrUrl instanceof JsonRpcProvider
+      ? providerOrUrl
+      : new JsonRpcProvider(providerOrUrl, network)
+    return (this.stateLoader = this.stateLoader ?? new StateLoader(this.profile, provider))
   }
 
   extractLogs = (txLogs: LogType[][]): { poolAddresses: string[] } => {
@@ -31,8 +33,8 @@ export class DerionSDK {
     }
   }
 
-  createAccount(address: string, signer?: Signer): Account {
-    return new Account(this.profile, address, signer)
+  createAccount(address: string): Account {
+    return new Account(this.profile.configs.derivable.token, address)
   }
 
   importPools(pools: Pools, poolAddresses: string[]) {
@@ -43,8 +45,11 @@ export class DerionSDK {
     })
   }
 
-  createSwapper = (url?: ConnectionInfo | string, network?: Networkish) => {
-    return new Swapper(this.profile.configs, this.profile, url, network)
+  createSwapper = (providerOrUrl?: JsonRpcProvider | ConnectionInfo | string, network?: Networkish) => {
+    const provider = providerOrUrl instanceof JsonRpcProvider
+      ? providerOrUrl
+      : new JsonRpcProvider(providerOrUrl, network)
+    return new Swapper(this.profile, provider)
   }
 
   calcPositionState = (position: Position, pools: Pools, currentPriceR = position.priceR, balance = position.balance): PositionView => {
