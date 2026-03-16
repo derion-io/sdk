@@ -1,12 +1,12 @@
-import { bn } from '.'
+import { BigNumber } from 'ethers'
 
 export const SECONDS_PER_DAY = 86400
 
-export const Q128 = bn(1).shl(128)
-export const M256 = bn(1).shl(256).sub(1)
-export const BIG_E18 = bn(10).pow(18)
-export const BIG_0 = bn(0)
-export const BIG_M1 = bn(-1)
+export const Q128 = BigNumber.from(1).shl(128)
+export const M256 = BigNumber.from(1).shl(256).sub(1)
+export const BIG_E18 = BigNumber.from(10).pow(18)
+export const BIG_0 = BigNumber.from(0)
+export const BIG_M1 = BigNumber.from(-1)
 
 export const NATIVE_ADDRESS = '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE'
 export const MINI_SECOND_PER_DAY = 86400000
