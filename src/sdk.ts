@@ -1,4 +1,5 @@
 import { JsonRpcProvider, Networkish } from '@ethersproject/providers'
+import { Signer } from 'ethers'
 import { ConnectionInfo } from 'ethers/lib/utils'
 import { Profile } from './profile'
 import { Account } from './account'
@@ -24,7 +25,8 @@ export class DerionSDK {
     const provider = providerOrUrl instanceof JsonRpcProvider
       ? providerOrUrl
       : new JsonRpcProvider(providerOrUrl, network)
-    return (this.stateLoader = this.stateLoader ?? new StateLoader(this.profile, provider))
+    this.stateLoader = new StateLoader(this.profile, provider)
+    return this.stateLoader
   }
 
   extractLogs = (txLogs: LogType[][]): { poolAddresses: string[] } => {
@@ -33,16 +35,18 @@ export class DerionSDK {
     }
   }
 
-  createAccount(address: string): Account {
-    return new Account(this.profile.configs.derivable.token, address)
+  createAccount(address: string, signer?: Signer): Account {
+    return new Account(this.profile.configs.derivable.token, address, signer)
   }
 
-  importPools(pools: Pools, poolAddresses: string[]) {
+  importPools(pools: Pools, poolAddresses: string[]): Pools {
+    const result = { ...pools }
     poolAddresses.forEach((address) => {
-      if (!pools[address]) {
-        pools[address] = { address }
+      if (!result[address]) {
+        result[address] = { address }
       }
     })
+    return result
   }
 
   createSwapper = (providerOrUrl?: JsonRpcProvider | ConnectionInfo | string, network?: Networkish) => {

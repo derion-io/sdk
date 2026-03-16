@@ -15,13 +15,18 @@ export class StateLoader {
     this.mc = new Multicall({ ethersProvider: this.provider, tryAggregate: true })
   }
 
-  async update({ pools }: { pools?: Pools }) {
+  async update({ pools }: { pools?: Pools }): Promise<Pools> {
+    const result: Pools = {}
+    for (const [addr, pool] of Object.entries(pools ?? {})) {
+      result[addr] = { ...pool }
+    }
+
     const { abi, deployedBytecode: code } = this.profile.getAbi('View')
     this.provider.setStateOverride({
       [this.profile.configs.derivable.logic]: { code },
     })
     await this._multicall(
-      Object.values(pools ?? {}).map((pool) => {
+      Object.values(result).map((pool) => {
         const calls = [
           {
             reference: 'compute',
@@ -98,6 +103,7 @@ export class StateLoader {
         }
       }),
     )
+    return result
   }
 
   async _multicall(contexts: ContractCallContext[]): Promise<any[]> {

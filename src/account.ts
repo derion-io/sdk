@@ -1,10 +1,11 @@
-import { BigNumber } from 'ethers'
+import { BigNumber, Signer } from 'ethers'
 import { processLogs } from './utils/logs'
 import { AccountState, Position, LogType, Transition, Pools } from './type'
 
 export class Account {
   tokenDerion: string
   address: string
+  signer?: Signer
   blockNumber: number = 0
   logIndex: number = 0
   positions: { [id: string]: Position } = {}
@@ -12,9 +13,10 @@ export class Account {
   balances: { [token: string]: BigNumber } = {}
   allowances: { [spenderToken: string]: BigNumber } = {}
 
-  constructor(tokenDerion: string, address: string) {
+  constructor(tokenDerion: string, address: string, signer?: Signer) {
     this.tokenDerion = tokenDerion
     this.address = address
+    this.signer = signer
   }
 
   getState(): AccountState {
