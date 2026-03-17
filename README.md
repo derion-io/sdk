@@ -50,12 +50,23 @@ const posViews = Object.values(account.positions).map(pos =>
   sdk.calcPositionState(pos, pools)
 )
 
-// 5. Simulate or execute swaps
+// 5. Simulate (no signer needed)
 const swapper = sdk.createSwapper(rpcUrl)
 const { amountOuts, gasUsed } = await swapper.simulate({
   tokenIn: NATIVE_ADDRESS,
   tokenOut: packPosId(poolAddress, POOL_IDS.A),
   amount: numberToWei(0.0001, 18),
+  account: accountAddress,
+  deps: { pools },
+})
+
+// 6. Execute with slippage protection
+const amountOutMin = amountOuts[amountOuts.length - 1].mul(95).div(100) // 5% slippage
+const tx = await swapper.swap({
+  tokenIn: NATIVE_ADDRESS,
+  tokenOut: packPosId(poolAddress, POOL_IDS.A),
+  amount: numberToWei(0.0001, 18),
+  amountOutMin,
   deps: { signer, pools },
 })
 ```
@@ -83,19 +94,20 @@ pools = sdk.importPools(pools, poolAddresses)
 pools = await stateLoader.update({ pools })
 const account = sdk.createAccount(address, signer)
 await account.processLogs(txLogs, pools)
-const tx = await swapper.swap({ tokenIn, tokenOut, amount, deps: { signer, pools } })
+const tx = await swapper.swap({ tokenIn, tokenOut, amount, amountOutMin, deps: { signer, pools } })
 ```
 
 **3rd-party** (integrators, aggregators, bots):
 ```ts
-// Direct: know the pools, load state, simulate
+// Direct: know the pools, load state, simulate — no signer needed for quotes
 pools = sdk.importPools({}, [knownPoolAddress])
 pools = await stateLoader.update({ pools })
 const { amountOuts } = await swapper.simulate({
   tokenIn: NATIVE_ADDRESS,
   tokenOut: packPosId(knownPoolAddress, POOL_IDS.A),
   amount: '1000000000000000',
-  deps: { signer, pools },
+  account: '0x0000000000000000000000000000000000000000',
+  deps: { pools },
 })
 ```
 
@@ -169,16 +181,21 @@ Handles swap simulation and execution via the Universal Transaction Router (UTR)
 ```ts
 const swapper = sdk.createSwapper(rpcUrl)
 
-// Simulate (no transaction sent, uses callStatic with state override)
+// Simulate — no signer needed, returns typed SimulateResult
 const { amountOuts, gasUsed } = await swapper.simulate({
-  tokenIn,    // address, NATIVE_ADDRESS, or positionId
-  tokenOut,   // address, NATIVE_ADDRESS, or positionId
-  amount,     // input amount as string
-  deps: { signer, pools },
+  tokenIn,     // address, NATIVE_ADDRESS, or positionId
+  tokenOut,    // address, NATIVE_ADDRESS, or positionId
+  amount,      // input amount as string
+  account,     // optional: account address (defaults to zero address)
+  deps: { pools },
 })
 
-// Execute (sends transaction)
-const tx = await swapper.swap({ tokenIn, tokenOut, amount, deps: { signer, pools } })
+// Execute — requires signer, supports slippage protection
+const tx = await swapper.swap({
+  tokenIn, tokenOut, amount,
+  amountOutMin,  // slippage protection (default 0 = no protection)
+  deps: { signer, pools },
+})
 ```
 
 ## Position IDs

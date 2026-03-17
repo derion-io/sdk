@@ -90,6 +90,12 @@ export type PendingSwapTransactionType = {
   steps: SwapStepType[]
 }
 
+export type SimulateResult = {
+  amountOuts: BigNumber[]
+  gasUsed: number
+  gasLeft: BigNumber
+}
+
 export class Swapper {
   profile: Profile
   provider: JsonRpcProvider
@@ -518,22 +524,60 @@ export class Swapper {
     tokenIn,
     amount,
     tokenOut,
+    amountOutMin = 0,
     deps,
     gasLimit,
-    callStatic,
   }: {
     tokenIn: string
     tokenOut: string
     amount: string
+    amountOutMin?: BigNumber | string | number
     deps: {
       pools: Pools
       signer: Signer
       decimals?: { [token: string]: number }
       indexR?: BigNumber
     }
-    callStatic?: boolean
     gasLimit?: BigNumber
-  }): Promise<any> => {
+  }): Promise<TransactionReceipt> => {
+    gasLimit = gasLimit ?? bn(5000000)
+    return await this.multiSwap({
+      steps: [
+        {
+          tokenIn,
+          tokenOut,
+          amountIn: bn(amount),
+          amountOutMin,
+          useSweep: false,
+        },
+      ],
+      gasLimit,
+      deps,
+    })
+  }
+
+  simulate = async ({
+    tokenIn,
+    tokenOut,
+    amount,
+    account,
+    deps,
+    gasLimit,
+  }: {
+    tokenIn: string
+    tokenOut: string
+    amount: string
+    account?: string
+    deps: {
+      pools: Pools
+      signer?: Signer
+      decimals?: { [token: string]: number }
+      indexR?: BigNumber
+    }
+    gasLimit?: BigNumber
+  }): Promise<SimulateResult> => {
+    const address = account
+      ?? (deps.signer ? await deps.signer.getAddress() : AddressZero)
     gasLimit = gasLimit ?? bn(5000000)
     const tx: any = await this.multiSwap({
       steps: [
@@ -546,32 +590,18 @@ export class Swapper {
         },
       ],
       gasLimit,
-      callStatic,
-      deps,
+      callStatic: true,
+      deps: {
+        ...deps,
+        signer: deps.signer ?? new VoidSigner(address, this.overrideProvider),
+      },
     })
-    if (callStatic) {
-      const gasLeft = tx.gasLeft
-      const gasUsed = gasLimit.sub(gasLeft).toNumber()
-      return {
-        ...tx,
-        gasUsed,
-      }
+    const gasLeft = tx.gasLeft
+    const gasUsed = gasLimit.sub(gasLeft).toNumber()
+    return {
+      amountOuts: tx.amountOuts,
+      gasUsed,
+      gasLeft,
     }
-    return tx
-  }
-
-  simulate = async (params: {
-    tokenIn: string
-    tokenOut: string
-    amount: string
-    deps: {
-      pools: Pools
-      signer: Signer
-      decimals?: { [token: string]: number }
-      indexR?: BigNumber
-    }
-    gasLimit?: BigNumber
-  }): Promise<any> => {
-    return await this.swap({ ...params, callStatic: true })
   }
 }

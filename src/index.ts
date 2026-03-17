@@ -12,6 +12,7 @@ export type {
   SwapCallDataParameterType,
   SwapCallDataReturnType,
   SwapAndOpenAggregatorType,
+  SimulateResult,
 } from './swapper'
 
 export { calcPoolInfo, calcPoolSide, calcPositionState, formatPositionView } from './utils/positions'
