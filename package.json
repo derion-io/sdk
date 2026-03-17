@@ -12,6 +12,7 @@
     "build": "tsc",
     "pretty": "prettier --write \"./src/**/*.ts\"",
     "test": "jest",
+    "prepare": "tsc",
     "prepublishOnly": "npm run build"
   },
   "author": "Derion Labs",
