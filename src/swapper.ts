@@ -6,6 +6,7 @@ import { NATIVE_ADDRESS, POOL_IDS, Q128 } from './utils/constant'
 import { ParaswapClient } from './paraswap'
 
 import { addressFromToken, sideFromToken, isPosId, packPosId, throwError, unpackPosId, bn } from './utils'
+import { getSingleRouteToUSD as _getSingleRouteToUSD, getIndexR as _getIndexR } from './utils/routes'
 import { DerionError, Pools } from './type'
 const { AddressZero } = ethers.constants
 const PAYMENT = 0
@@ -151,48 +152,12 @@ export class Swapper {
     return this.helperContract.populateTransaction[method](formattedParams)
   }
 
-  getSingleRouteToUSD(
-    token: string,
-    types: Array<string> = ['uniswap3'],
-  ):
-    | {
-        quoteTokenIndex: number
-        stablecoin: string
-        address: string
-      }
-    | undefined {
-    const {
-      routes,
-      configs: { stablecoins },
-    } = this.profile
-    for (const stablecoin of stablecoins) {
-      for (const asSecond of [false, true]) {
-        const key = asSecond ? `${stablecoin}-${token}` : `${token}-${stablecoin}`
-        const route = routes[key]
-        if (route?.length != 1) {
-          continue
-        }
-        const { type, address } = route[0]
-        if (!types.includes(type)) {
-          continue
-        }
-        const quoteTokenIndex = token.localeCompare(stablecoin, undefined, { sensitivity: 'accent' }) < 0 ? 1 : 0
-        return {
-          quoteTokenIndex,
-          stablecoin,
-          address,
-        }
-      }
-    }
-    return undefined
+  getSingleRouteToUSD(token: string, types?: Array<string>) {
+    return _getSingleRouteToUSD(this.profile, token, types)
   }
 
   getIndexR(tokenR: string): BigNumber {
-    const { quoteTokenIndex, address } = this.getSingleRouteToUSD(tokenR) ?? {}
-    if (!address) {
-      return bn(0)
-    }
-    return bn(utils.hexZeroPad(bn(quoteTokenIndex).shl(255).add(address).toHexString(), 32))
+    return _getIndexR(this.profile, tokenR)
   }
 
   getUniPool(tokenIn: string, tokenR: string): string {

@@ -18,6 +18,9 @@ export type {
 export { calcPoolInfo, calcPoolSide, calcPositionState, formatPositionView } from './utils/positions'
 export type { PositionView } from './utils/positions'
 
+export { getSingleRouteToUSD, getIndexR } from './utils/routes'
+export type { SingleRouteToUSDResult } from './utils/routes'
+
 export {
   bn, isPosId, packPosId, unpackPosId,
   sideFromToken, addressFromToken,
