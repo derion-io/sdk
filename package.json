@@ -1,6 +1,6 @@
 {
   "name": "@derion/sdk",
-  "version": "3.0.1",
+  "version": "3.0.2",
   "description": "TypeScript SDK for the Derion protocol",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -31,6 +31,9 @@
     "type": "git",
     "url": "git+https://github.com/derion-io/sdk.git"
   },
+  "bundleDependencies": [
+    "@ethersproject/providers"
+  ],
   "dependencies": {
     "@ethersproject/providers": "file:vendor/providers",
     "ethereum-multicall": "^2.15.0",
