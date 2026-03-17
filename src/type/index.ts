@@ -98,6 +98,7 @@ export type Pool = {
     PREMIUM_HL: number
     OPEN_RATE: BigNumber
     R_DT: number
+    exp?: number
   }
   metadata?: {
     reserve: {

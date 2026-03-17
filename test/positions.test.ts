@@ -94,6 +94,23 @@ describe('positions', () => {
       expect(info.sides[POOL_IDS.B].premium).toBeLessThan(0)
     })
 
+    it('uses exp from config (defaults to 2 for UniV3)', () => {
+      const poolV3 = makePool()
+      const infoV3 = calcPoolInfo(poolV3)
+
+      // exp=1 (UniV2/Chainlink) should produce double the interest rate
+      const poolV2 = makePool({
+        config: { ...makePool().config!, exp: 1 },
+      })
+      const infoV2 = calcPoolInfo(poolV2)
+
+      // With exp=1, power = K/1 = K; with exp=2, power = K/2
+      // rateFromHL(HL, power) = DURATION * ln2 / power / HL
+      // So exp=1 gives half the rate of exp=2
+      expect(infoV2.interestRate).toBeLessThan(infoV3.interestRate)
+      expect(infoV2.interestRate).toBeCloseTo(infoV3.interestRate / 2, 10)
+    })
+
     it('throws for pool without config', () => {
       const pool: Pool = { address: '0x0000000000000000000000000000000000000001' }
       expect(() => calcPoolInfo(pool)).toThrow('missing pool data')
@@ -105,11 +122,25 @@ describe('positions', () => {
       const pool = makePool()
       const result = calcPoolSide(pool, POOL_IDS.A)
 
-      expect(result.leverage).toBeGreaterThan(0)
-      expect(result.effectiveLeverage).toBeGreaterThanOrEqual(0)
+      expect(result.power).toBeGreaterThan(0)
+      expect(result.effPower).toBeGreaterThanOrEqual(0)
       expect(result.dgA).toBeDefined()
       expect(result.dgB).toBeDefined()
       expect(typeof result.funding).toBe('number')
+    })
+
+    it('calculates power based on exp', () => {
+      // UniV3 (exp=2, default): power = K/2
+      const poolV3 = makePool()
+      const resultV3 = calcPoolSide(poolV3, POOL_IDS.A)
+      expect(resultV3.power).toBe(4 / 2) // K=4, exp=2
+
+      // UniV2 (exp=1): power = K/1
+      const poolV2 = makePool({
+        config: { ...makePool().config!, exp: 1 },
+      })
+      const resultV2 = calcPoolSide(poolV2, POOL_IDS.A)
+      expect(resultV2.power).toBe(4 / 1) // K=4, exp=1
     })
 
     it('throws for pool without state', () => {
@@ -140,7 +171,7 @@ describe('positions', () => {
       expect(view.poolAddress).toBe(pool.address)
       expect(view.side).toBe(POOL_IDS.A)
       expect(view.balance.eq(position.balance)).toBe(true)
-      expect(view.leverage).toBeGreaterThan(0)
+      expect(view.power).toBeGreaterThan(0)
       expect(view.valueR.gt(0)).toBe(true)
       expect(view.entryPrice.eq(Q128)).toBe(true)
       expect(view.entryValueR.gt(0)).toBe(true)

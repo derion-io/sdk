@@ -21,8 +21,8 @@ export type PositionView = {
   valueR: BigNumber
   deleveragePriceA: BigNumber
   deleveragePriceB: BigNumber
-  leverage: number
-  effectiveLeverage: number
+  power: number
+  effPower: number
   funding: number
   netPnL?: BigNumber
   simPnL?: {
@@ -37,7 +37,9 @@ export function calcPoolInfo(pool: Pool): any {
   if (!pool?.config || !pool?.view || !pool?.state) {
     throw new Error('missing pool data')
   }
-  const { MARK, K, INTEREST_HL, PREMIUM_HL } = pool.config
+  const { MARK, K, INTEREST_HL, PREMIUM_HL, exp: _exp } = pool.config
+  const exp = _exp ?? 2
+  const power = K / exp
   const { R, a, b } = pool.state
   const { rA, rB, rC, spot } = pool.view
 
@@ -62,8 +64,8 @@ export function calcPoolInfo(pool: Pool): any {
     ),
   )
 
-  const interestRate = rateFromHL(INTEREST_HL, K)
-  const maxPremiumRate = rateFromHL(PREMIUM_HL, K)
+  const interestRate = rateFromHL(INTEREST_HL, power)
+  const maxPremiumRate = rateFromHL(PREMIUM_HL, power)
   if (maxPremiumRate > 0) {
     if (rA.gt(rB)) {
       const rDiff = rA.sub(rB)
@@ -103,23 +105,23 @@ export function calcPoolSide(pool: Pool, side: number): any {
   if (!pool?.config || !pool?.view || !pool?.state) {
     throw new Error('missing pool data')
   }
-  const { K } = pool.config
+  const { K, exp: _exp } = pool.config
+  const exp = _exp ?? 2
 
   const poolInfo = calcPoolInfo(pool)
   const { sides, dgA, dgB } = poolInfo
 
-  const exp = 2 // always Uniswap v3
   const ek = sides[side].k
-  const leverage = K / 2
-  const effectiveLeverage = Math.min(ek, K) / exp
+  const power = K / exp
+  const effPower = Math.min(ek, K) / exp
 
   const interest = sides[side].interest
   const premium = sides[side].premium
   const funding = interest + premium
 
   return {
-    leverage,
-    effectiveLeverage,
+    power,
+    effPower,
     dgA,
     dgB,
     interest,
@@ -151,16 +153,16 @@ export function calcPositionState(position: Position, pools: Pools, currentPrice
   const valueR = rX.mul(balance).div(sX)
   const valueU = currentPriceR ? valueR.mul(currentPriceR).shr(128) : undefined
 
-  const { leverage, effectiveLeverage, dgA, dgB, funding } = calcPoolSide(pool, side)
+  const { power, effPower, dgA, dgB, funding } = calcPoolSide(pool, side)
 
-  const L = side == A ? NUM(leverage) : side == B ? -NUM(leverage) : 0
+  const L = side == A ? NUM(power) : side == B ? -NUM(power) : 0
 
   const result: PositionView = {
     poolAddress,
     side,
     balance,
-    leverage,
-    effectiveLeverage,
+    power,
+    effPower,
     deleveragePriceA: dgA,
     deleveragePriceB: dgB,
     funding,
@@ -195,7 +197,7 @@ export function calcPositionState(position: Position, pools: Pools, currentPrice
 
 export function formatPositionView(pv: PositionView): any {
   const res: any = {
-    name: `${pv.side == A ? 'Long' : pv.side == B ? 'Short' : 'LP'} x${pv.leverage}`,
+    name: `${pv.side == A ? 'Long' : pv.side == B ? 'Short' : 'LP'} x${pv.power}`,
     pool: pv.poolAddress,
     balance: thousandsInt(pv.balance.toString(), 6),
     entryPrice: formatQ128(pv.entryPrice),

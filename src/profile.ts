@@ -66,4 +66,8 @@ export class Profile {
   getAbi(name: string) {
     return abis[name] ? abis[name] : abis[this.chainId]?.[name] || []
   }
+
+  getExp(fetcher: string): number {
+    return this.configs?.fetchers?.[fetcher]?.type?.endsWith('3') ? 2 : 1
+  }
 }

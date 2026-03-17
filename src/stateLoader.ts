@@ -78,6 +78,7 @@ export class StateLoader {
                   PREMIUM_HL: PREMIUM_HL.toNumber(),
                   OPEN_RATE,
                   R_DT: R_DT.toNumber(),
+                  exp: this.profile.getExp(FETCHER),
                 }
                 pool.metadata = {
                   reserve: {
