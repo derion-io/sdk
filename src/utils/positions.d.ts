@@ -1,0 +1,32 @@
+import { BigNumber } from 'ethers';
+import { Position, Pool, Pools } from '../type';
+export type PositionView = {
+    poolAddress: string;
+    side: number;
+    balance: BigNumber;
+    entryValueR: BigNumber;
+    entryValueU: BigNumber;
+    entryPrice: BigNumber;
+    currentPrice: BigNumber;
+    valueRLinear?: BigNumber;
+    valueRCompound?: BigNumber;
+    valueU?: BigNumber;
+    valueR: BigNumber;
+    deleveragePriceA: BigNumber;
+    deleveragePriceB: BigNumber;
+    power: number;
+    effPower: number;
+    funding: number;
+    netPnL?: BigNumber;
+    simPnL?: {
+        linear: BigNumber;
+        power: BigNumber;
+        powerBenefit: BigNumber;
+        funding: BigNumber;
+    };
+};
+export declare function calcPoolInfo(pool: Pool): any;
+export declare function calcPoolSide(pool: Pool, side: number): any;
+export declare function calcPositionState(position: Position, pools: Pools, currentPriceR?: BigNumber, balance?: BigNumber): PositionView;
+export declare function formatPositionView(pv: PositionView): any;
+//# sourceMappingURL=positions.d.ts.map
