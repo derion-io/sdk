@@ -1,0 +1,10 @@
+src
+test
+lib
+.idea
+.env
+.git*
+jest.config.js
+tsconfig.json
+CLAUDE.md
+*.tsbuildinfo

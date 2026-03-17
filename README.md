@@ -4,19 +4,24 @@ TypeScript SDK for the Derion protocol — leveraged perpetual positions on EVM 
 
 Designed for both **1st-party** (protocol frontend/backend) and **3rd-party** (external integrators) use. The SDK handles all calculation and state construction while remaining **stateless** — it holds only chain configuration. All state (pools, positions, balances) is owned and managed by the caller.
 
-## Setup
+## Installation
 
 ```bash
-# Clone with submodules
+npm install @derion/sdk
+```
+
+Or install from GitHub:
+
+```bash
+npm install github:derion-io/sdk
+```
+
+### Development Setup
+
+```bash
 git clone --recurse-submodules <repo-url>
-
-# Install dependencies
 npm install
-
-# Build
 npm run build
-
-# Test
 npm test
 ```
 
@@ -27,8 +32,8 @@ import {
   DerionSDK, packPosId, formatPositionView,
   NATIVE_ADDRESS, POOL_IDS,
   type LogType, type Pools,
-} from 'derion-sdk'
-import { numberToWei } from 'derion-sdk/dist/utils/helper'
+} from '@derion/sdk'
+import { numberToWei } from '@derion/sdk/dist/utils/helper'
 
 // 1. Initialize (loads chain config)
 const sdk = new DerionSDK({ chainId: 42161 })
@@ -203,7 +208,7 @@ const tx = await swapper.swap({
 Positions are identified by a 32-byte packed ID: `side (12 bytes) + poolAddress (20 bytes)`.
 
 ```ts
-import { packPosId, unpackPosId, isPosId, POOL_IDS } from 'derion-sdk'
+import { packPosId, unpackPosId, isPosId, POOL_IDS } from '@derion/sdk'
 
 const posId = packPosId(poolAddress, POOL_IDS.A) // 66-char hex string
 const [pool, side] = unpackPosId(posId)

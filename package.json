@@ -1,46 +1,33 @@
 {
-  "name": "derion-sdk",
-  "version": "1.0.0",
-  "description": "",
+  "name": "@derion/sdk",
+  "version": "3.0.0",
+  "description": "TypeScript SDK for the Derion protocol",
   "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "vendor"
+  ],
   "scripts": {
     "build": "tsc",
     "pretty": "prettier --write \"./src/**/*.ts\"",
-    "test": "jest"
+    "test": "jest",
+    "prepublishOnly": "npm run build"
   },
   "author": "Derion Labs",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/derion-io/sdk.git"
+  },
   "dependencies": {
-    "@ethersproject/providers": "lib/ethers.js/packages/providers",
-    "@zoltu/ethereum-crypto": "^2.3.0",
-    "@zoltu/ethereum-fetch-json-rpc": "^13.1.4",
-    "@zoltu/ethereum-types": "^9.0.4",
-    "@zoltu/rlp-encoder": "^2.0.6",
-    "assisted-json-rpc-provider": "git+ssh://git@github.com:derion-io/AssistedJsonRpcProvider.git#dev",
-    "canonical-weth": "^1.4.0",
-    "dotenv": "^16.3.1",
+    "@ethersproject/providers": "file:vendor/providers",
     "ethereum-multicall": "^2.15.0",
     "ethers": "^5.5.4",
-    "lodash": "^4.17.21",
-    "move-decimal-point": "^0.0.4",
-    "node-fetch": "^2.6.7"
+    "move-decimal-point": "^0.0.4"
   },
   "devDependencies": {
     "@types/jest": "^29.5.11",
-    "@types/lodash": "^4.14.179",
-    "@types/node-fetch": "^2.6.1",
-    "@typescript-eslint/eslint-plugin": "^2.26.0",
-    "@typescript-eslint/parser": "^2.26.0",
-    "eslint": "^6.8.0",
-    "eslint-config-prettier": "^6.7.0",
-    "eslint-config-standard": "^14.1.0",
-    "eslint-config-standard-react": "^9.2.0",
-    "eslint-plugin-import": "^2.18.2",
-    "eslint-plugin-node": "^11.0.0",
-    "eslint-plugin-prettier": "^3.1.1",
-    "eslint-plugin-promise": "^4.2.1",
-    "eslint-plugin-react": "^7.17.0",
-    "eslint-plugin-standard": "^4.0.1",
     "jest": "^29.7.0",
     "prettier": "2.8.8",
     "ts-jest": "^29.1.1",
